@@ -7,10 +7,23 @@ import cors from 'cors';
 dotenv.config();
 
 const app = express();
+const allowedOrigins = new Set(
+  [process.env.CLIENT_URL, 'http://localhost:3000', 'http://localhost:5173']
+    .filter((origin): origin is string => Boolean(origin))
+    .map((origin) => origin.replace(/\/$/, '')),
+);
+
 app.use(express.json());
 app.use(
   cors({
-    origin: 'http://localhost:5173', // Allow frontend origin
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin.replace(/\/$/, ''))) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin} is not allowed by CORS`));
+    },
   }),
 );
 

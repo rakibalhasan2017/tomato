@@ -30,7 +30,6 @@ RUN npm ci --omit=dev
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
 
-
 # Expose port (adjust if your service uses a different port)
 EXPOSE 5000
 

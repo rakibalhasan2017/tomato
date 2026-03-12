@@ -1,0 +1,16 @@
+exit
+clear
+db.users.find()
+show collections
+use auth_db
+show dbs
+show db
+db.users.find()
+show collections
+db.users.find()
+show collections
+use auth_db
+show collections
+show dbs
+show db
+clear
