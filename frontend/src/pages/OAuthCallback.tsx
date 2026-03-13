@@ -1,55 +1,44 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams, Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth-context';
 import { getMyProfile } from '../services/api';
 
 export const OAuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login, user } = useAuth();
-  const [error, setError] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(true);
 
   const token = searchParams.get('token');
   const errorParam = searchParams.get('error');
+  const error =
+    errorParam === 'no_code'
+      ? 'No authorization code received'
+      : errorParam === 'no_email'
+        ? 'Email not provided by Google'
+        : errorParam
+          ? 'Authentication failed'
+          : null;
+
+  const handleTokenCallback = useCallback(
+    async (oauthToken: string) => {
+      try {
+        const userProfile = await getMyProfile(oauthToken);
+        login(oauthToken, userProfile);
+        navigate('/dashboard', { replace: true });
+      } catch {
+        navigate('/login?error=auth_failed', { replace: true });
+      }
+    },
+    [login, navigate],
+  );
 
   useEffect(() => {
-    // If already logged in and no token in URL, redirect to dashboard
-    if (user && !token) {
-      navigate('/dashboard', { replace: true });
+    if (!token || errorParam || user) {
       return;
     }
 
-    if (errorParam) {
-      setError(
-        errorParam === 'no_code'
-          ? 'No authorization code received'
-          : errorParam === 'no_email'
-            ? 'Email not provided by Google'
-            : 'Authentication failed',
-      );
-      setIsProcessing(false);
-      return;
-    }
-
-    if (token) {
-      handleTokenCallback(token);
-    } else {
-      // No token, redirect to dashboard (ProtectedRoute will handle auth check)
-      navigate('/dashboard', { replace: true });
-    }
-  }, [token, errorParam, user]);
-
-  const handleTokenCallback = async (token: string) => {
-    try {
-      const userProfile = await getMyProfile(token);
-      login(token, userProfile);
-      navigate('/dashboard', { replace: true });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
-      setIsProcessing(false);
-    }
-  };
+    void handleTokenCallback(token);
+  }, [token, errorParam, user, handleTokenCallback]);
 
   if (error) {
     return (
@@ -69,7 +58,7 @@ export const OAuthCallback = () => {
     );
   }
 
-  if (isProcessing) {
+  if (token && !error && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-500 to-orange-400">
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 text-center">

@@ -1,40 +1,22 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  image: string;
-  role: string | null;
-}
-
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isLoading: boolean;
-  login: (token: string, user: User) => void;
-  logout: () => void;
-  updateUser: (user: User) => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { useState, type ReactNode } from 'react';
+import { AuthContext, type User } from './auth-context';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Check for existing auth data on mount
-    const storedToken = localStorage.getItem('token');
+  const [user, setUser] = useState<User | null>(() => {
     const storedUser = localStorage.getItem('user');
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    if (!storedUser) {
+      return null;
     }
-    setIsLoading(false);
-  }, []);
+
+    try {
+      return JSON.parse(storedUser) as User;
+    } catch {
+      localStorage.removeItem('user');
+      return null;
+    }
+  });
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const isLoading = false;
 
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
@@ -60,12 +42,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

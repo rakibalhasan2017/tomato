@@ -1,13 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth-context';
 import { getGoogleAuthUrl } from '../services/api';
 
 export const Login = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [error, setError] = useState<string | null>(null);
+  const errorParam = searchParams.get('error');
+  const error =
+    errorParam === 'no_code'
+      ? 'No authorization code received'
+      : errorParam === 'no_email'
+        ? 'Email not provided by Google'
+        : errorParam
+          ? 'Authentication failed'
+          : null;
 
   // Redirect if already logged in
   useEffect(() => {
@@ -15,20 +23,6 @@ export const Login = () => {
       navigate('/dashboard');
     }
   }, [user, navigate]);
-
-  // Check for error params from OAuth callback
-  useEffect(() => {
-    const errorParam = searchParams.get('error');
-    if (errorParam) {
-      setError(
-        errorParam === 'no_code'
-          ? 'No authorization code received'
-          : errorParam === 'no_email'
-            ? 'Email not provided by Google'
-            : 'Authentication failed',
-      );
-    }
-  }, [searchParams]);
 
   const handleGoogleLogin = () => {
     window.location.href = getGoogleAuthUrl();
