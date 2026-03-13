@@ -157,7 +157,7 @@ jobs:
     name: Pull and Run on Local Machine
     runs-on:
       - self-hosted
-      - linux
+      - Linux
     needs:
       - publish-images
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
