@@ -154,11 +154,13 @@ jobs:
           docker push ${{ env.AUTH_IMAGE }}:latest
 
   deploy-local:
-    name: Pull and Run on GitHub Runner
-    runs-on: ubuntu-latest
+    name: Pull and Run on Local Machine
+    runs-on:
+      - self-hosted
+      - linux
     needs:
       - publish-images
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
