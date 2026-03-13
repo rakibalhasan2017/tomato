@@ -1,0 +1,130 @@
+title: 'CI/CD Workflow Guide'
+workflow_file: '.github/workflows/action.yml'
+purpose: >
+  This document explains what your GitHub Actions workflow does, which problems it solves,
+  and what manual setup you still need to complete.
+
+what_problem_it_solves:
+  - 'Prevents broken code from being merged by running automated checks on every PR and push.'
+  - 'Confirms both app images build correctly before deployment.'
+  - 'Automates container image publishing from the main branch.'
+  - 'Creates a repeatable delivery process instead of manual local release steps.'
+
+why_you_need_this:
+  - 'Early bug detection (lint/build/test in CI).'
+  - 'Consistent quality gate for all contributors.'
+  - 'Fast and reliable release process for Docker-based environments.'
+  - 'Auditability: every deployment artifact is tied to a commit SHA.'
+
+workflow_overview:
+  name: 'CI/CD Pipeline'
+  triggers:
+    push:
+      branches:
+        - 'main'
+        - 'develop'
+      why: 'Validate direct branch updates and publish only from main.'
+    pull_request:
+      branches:
+        - 'main'
+        - 'develop'
+      why: 'Run checks before merging changes.'
+    workflow_dispatch:
+      why: 'Allows manual run from GitHub UI for on-demand verification.'
+  permissions:
+    contents: 'read'
+    why: 'Minimum required permission for CI checkout/read operations.'
+  concurrency:
+    group: 'tomato-${{ github.workflow }}-${{ github.ref }}'
+    cancel_in_progress: true
+    why: 'Cancels outdated runs on the same branch to save CI minutes.'
+
+jobs:
+  frontend-ci:
+    purpose: 'Validate frontend quality and buildability.'
+    working_directory: 'frontend'
+    steps:
+      - 'Checkout repository'
+      - 'Setup Node.js 22 with npm cache'
+      - 'Install deps with npm ci'
+      - 'Run eslint (npm run lint)'
+      - 'Run production build (npm run build)'
+    outcome: 'Fails fast if frontend lint or build breaks.'
+
+  auth-service-ci:
+    purpose: 'Validate backend service quality, build, and tests.'
+    working_directory: 'services/auth-service'
+    steps:
+      - 'Checkout repository'
+      - 'Setup Node.js 22 with npm cache'
+      - 'Install deps with npm ci'
+      - 'Run eslint (npm run lint)'
+      - 'Compile service (npm run build)'
+      - 'Run tests (npm test -- --passWithNoTests)'
+    outcome: 'Prevents backend code regressions and compile failures.'
+    note: >
+      passWithNoTests avoids hard-failing when no tests are defined yet. Keep it until test
+      coverage is introduced, then consider removing it.
+
+  docker-build:
+    purpose: 'Validate Dockerfiles by building both service images.'
+    depends_on:
+      - 'frontend-ci'
+      - 'auth-service-ci'
+    steps:
+      - 'Checkout repository'
+      - 'Setup Docker Buildx'
+      - 'Build frontend image (no push)'
+      - 'Build auth-service image (no push)'
+    outcome: 'Catches Docker build issues before publish/deploy.'
+
+  publish-images:
+    purpose: 'Publish Docker images to GHCR for deployment.'
+    depends_on:
+      - 'docker-build'
+    condition: 'Only runs on push events to refs/heads/main.'
+    permissions:
+      contents: 'read'
+      packages: 'write'
+    registry: 'ghcr.io'
+    image_tags:
+      frontend:
+        - 'ghcr.io/<owner>/tomato-frontend:${{ github.sha }}'
+        - 'ghcr.io/<owner>/tomato-frontend:latest'
+      auth_service:
+        - 'ghcr.io/<owner>/tomato-auth-service:${{ github.sha }}'
+        - 'ghcr.io/<owner>/tomato-auth-service:latest'
+    outcome: 'Produces versioned and latest images ready for deployment.'
+
+manual_changes_you_should_make:
+  required_for_pipeline_to_pass:
+    - 'Fix current frontend lint errors so frontend-ci can pass.'
+    - >
+      Add missing ESLint TypeScript plugin for auth-service or align ESLint config:
+      install @typescript-eslint/eslint-plugin (and @typescript-eslint/parser if config needs it)
+      in services/auth-service devDependencies.
+    - 'Commit and push this workflow file on your default branch so Actions can run.'
+
+  required_for_image_publishing:
+    - >
+      Ensure repository/organization settings allow GitHub Actions to write packages to GHCR
+      (publish-images uses GITHUB_TOKEN).
+    - >
+      If your org enforces restricted package publishing, grant workflow/package write access in
+      org settings.
+
+  optional_customization:
+    - 'Change trigger branches if your release flow does not use main/develop.'
+    - 'Pin Node.js to your preferred LTS version if different from 22.'
+    - 'Rename image repositories/tags if you want a different GHCR naming convention.'
+    - 'Add deployment job(s) after publish-images for Kubernetes, VM, or Compose rollout.'
+
+quick_usage:
+  - 'Open Actions tab: run the workflow manually via workflow_dispatch.'
+  - 'Create a PR to main/develop: CI jobs run automatically.'
+  - 'Push to main: CI runs, then publish-images pushes to GHCR.'
+
+success_criteria:
+  - 'All CI jobs pass on pull requests.'
+  - 'Docker build validation passes.'
+  - 'Main branch pushes publish both images to GHCR.'

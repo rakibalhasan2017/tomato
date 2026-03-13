@@ -1,6 +1,8 @@
 services:
   # Frontend service
   frontend:
+    image: rakib2017/tomato-frontend:latest
+    pull_policy: always
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -17,6 +19,8 @@ services:
 
   # Backend auth service
   auth-service:
+    image: rakib2017/tomato-auth-service:latest
+    pull_policy: always
     build:
       context: ./services/auth-service
       dockerfile: Dockerfile
