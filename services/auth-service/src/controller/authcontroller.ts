@@ -65,10 +65,16 @@ export const loginuser = async (req: Request, res: Response) => {
         role: user.role,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Google OAuth Error:', error);
 
-    if (error.response?.status === 400) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'response' in error &&
+      typeof (error as { response?: { status?: number } }).response?.status === 'number' &&
+      (error as { response?: { status?: number } }).response?.status === 400
+    ) {
       return res.status(400).json({ error: 'Invalid or expired authorization code' });
     }
 
