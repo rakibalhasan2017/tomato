@@ -171,6 +171,9 @@ jobs:
           username: ${{ env.DOCKERHUB_NAMESPACE }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Copy environment file
+        run: cp /home/rakib/projects/tomato/.env .env
+
       - name: Pull latest application images
         run: docker compose pull frontend auth-service
 
