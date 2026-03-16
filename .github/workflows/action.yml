@@ -179,6 +179,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Copy environment file
+        run: |
+          if [ ! -f /home/rakib/projects/tomato/.env ]; then
+            echo "Host .env file not found at /home/rakib/projects/tomato/.env"
+            exit 1
+          fi
+          cp /home/rakib/projects/tomato/.env .env
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
