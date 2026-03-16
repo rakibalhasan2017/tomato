@@ -20,16 +20,17 @@ concurrency:
 
 env:
   DOCKERHUB_NAMESPACE: rakib2017
-  FRONTEND_IMAGE: rakib2017/tomato-frontend
-  AUTH_IMAGE: rakib2017/tomato-auth-service
+  FRONTEND_IMAGE: tomato-frontend
+  AUTH_IMAGE: tomato-auth-service
 
 jobs:
-  frontend-ci:
-    name: Frontend CI
+  ## JOB 1: Lint frontend code
+  Lint_frontend:
+    name: Lint Frontend CI
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: ./frontend
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,7 +40,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: ./frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -47,15 +48,13 @@ jobs:
       - name: Lint frontend
         run: npm run lint
 
-      - name: Build frontend
-        run: npm run build
-
-  auth-service-ci:
-    name: Auth Service CI
+  ## JOB 2: Lint auth-service
+  Lint_auth-service:
+    name: Lint Auth Service CI
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: services/auth-service
+        working-directory: ./services/auth-service
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -65,7 +64,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: services/auth-service/package-lock.json
+          cache-dependency-path: ./services/auth-service/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -73,18 +72,64 @@ jobs:
       - name: Lint auth service
         run: npm run lint
 
-      - name: Build auth service
-        run: npm run build
+  ## JOB 3: Test frontend code
+  Test_Frontend:
+    name: Test Frontend CI
+    runs-on: ubuntu-latest
+    needs: Lint_frontend
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test frontend
+        run: npm test
+
+  ## JOB 4: Test auth-service code
+  Test_auth-service:
+    name: Test Auth Service CI
+    runs-on: ubuntu-latest
+    needs: Lint_auth-service
+    defaults:
+      run:
+        working-directory: ./services/auth-service
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ./services/auth-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Test auth service
-        run: npm test -- --passWithNoTests
+        run: npm test
 
+  ## JOB 5: Build and push Docker images for both services
   docker-build:
-    name: Docker Build Validation
+    name: Docker Build and Push
     runs-on: ubuntu-latest
     needs:
-      - frontend-ci
-      - auth-service-ci
+      - Test_Frontend
+      - Test_auth-service
+    if: github.event_name != 'pull_request'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -92,74 +137,43 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build frontend image
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_NAMESPACE }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Build and push frontend image with BOTH tags
+      - name: Build and push frontend image
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
-          push: false
-          tags: ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build auth-service image
+      # Build and push auth-service image with BOTH tags
+      - name: Build and push auth-service image
         uses: docker/build-push-action@v6
         with:
           context: ./services/auth-service
           file: ./services/auth-service/Dockerfile
-          push: false
-          tags: ${{ env.AUTH_IMAGE }}:${{ github.sha }}
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.AUTH_IMAGE }}:latest
+            ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.AUTH_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-  publish-images:
-    name: Build Locally and Push Docker Hub Images
-    runs-on: ubuntu-latest
-    needs:
-      - docker-build
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ env.DOCKERHUB_NAMESPACE }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build frontend image locally
-        run: |
-          docker build \
-            --file ./frontend/Dockerfile \
-            --tag ${{ env.FRONTEND_IMAGE }}:${{ github.sha }} \
-            --tag ${{ env.FRONTEND_IMAGE }}:latest \
-            ./frontend
-
-      - name: Build auth-service image locally
-        run: |
-          docker build \
-            --file ./services/auth-service/Dockerfile \
-            --tag ${{ env.AUTH_IMAGE }}:${{ github.sha }} \
-            --tag ${{ env.AUTH_IMAGE }}:latest \
-            ./services/auth-service
-
-      - name: Push frontend image to Docker Hub
-        run: |
-          docker push ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
-          docker push ${{ env.FRONTEND_IMAGE }}:latest
-
-      - name: Push auth-service image to Docker Hub
-        run: |
-          docker push ${{ env.AUTH_IMAGE }}:${{ github.sha }}
-          docker push ${{ env.AUTH_IMAGE }}:latest
-
+  ## JOB 6: Deploy to local machine
   deploy-local:
     name: Pull and Run on Local Machine
-    runs-on:
-      - self-hosted
-      - Linux
-    needs:
-      - publish-images
+    runs-on: self-hosted
+    needs: docker-build
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout repository
@@ -171,14 +185,45 @@ jobs:
           username: ${{ env.DOCKERHUB_NAMESPACE }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Copy environment file
-        run: cp /home/rakib/projects/tomato/.env .env
+      - name: Stop all containers from docker-compose
+        run: |
+          echo "Stopping all containers..."
+          docker-compose down || true
 
-      - name: Pull latest application images
-        run: docker compose pull frontend auth-service
+      - name: Remove old containers
+        run: |
+          echo "Removing old containers..."
+          docker rm -f tomato-frontend || true
+          docker rm -f auth-service || true
+          docker rm -f auth-mongodb || true
 
-      - name: Run services from pulled images
-        run: docker compose up -d --no-build --force-recreate --remove-orphans
+      - name: Remove old images (app images only, not mongodb)
+        run: |
+          echo "Removing old frontend image..."
+          docker rmi ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.FRONTEND_IMAGE }}:latest || true
 
-      - name: Show running containers
-        run: docker compose ps
+          echo "Removing old auth-service image..."
+          docker rmi ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.AUTH_IMAGE }}:latest || true
+
+      - name: Pull latest images from DockerHub
+        run: |
+          echo "Pulling latest frontend image..."
+          docker pull ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.FRONTEND_IMAGE }}:latest
+
+          echo "Pulling latest auth-service image..."
+          docker pull ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.AUTH_IMAGE }}:latest
+
+      - name: Start containers with docker-compose
+        run: |
+          echo "Starting containers with docker-compose..."
+          docker-compose up -d --pull always --force-recreate
+
+      - name: Verify containers are running
+        run: |
+          echo "Verifying containers..."
+          docker ps --filter "name=tomato-frontend" --filter "name=auth-service" --filter "name=auth-mongodb"
+
+      - name: Clean up unused images
+        run: |
+          echo "Cleaning up unused images..."
+          docker image prune -af --filter "label!=keep"
