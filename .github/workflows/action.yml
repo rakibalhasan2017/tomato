@@ -14,10 +14,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: tomato-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   DOCKERHUB_NAMESPACE: rakib2017
   FRONTEND_IMAGE: tomato-frontend
