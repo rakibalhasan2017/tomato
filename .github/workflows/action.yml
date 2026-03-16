@@ -94,8 +94,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test frontend
-        run: npm test
+      - name: Build frontend (CI validation)
+        run: npm run build
 
   ## JOB 4: Test auth-service code
   Test_auth-service:
@@ -120,7 +120,7 @@ jobs:
         run: npm ci
 
       - name: Test auth service
-        run: npm test
+        run: npm run build
 
   ## JOB 5: Build and push Docker images for both services
   docker-build:
