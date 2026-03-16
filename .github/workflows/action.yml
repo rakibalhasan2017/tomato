@@ -185,10 +185,10 @@ jobs:
           username: ${{ env.DOCKERHUB_NAMESPACE }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Stop all containers from docker-compose
+      - name: Stop all containers from Docker Compose
         run: |
           echo "Stopping all containers..."
-          docker-compose down || true
+          docker compose down || true
 
       - name: Remove old containers
         run: |
@@ -213,10 +213,10 @@ jobs:
           echo "Pulling latest auth-service image..."
           docker pull ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.AUTH_IMAGE }}:latest
 
-      - name: Start containers with docker-compose
+      - name: Start containers with Docker Compose
         run: |
-          echo "Starting containers with docker-compose..."
-          docker-compose up -d --pull always --force-recreate
+          echo "Starting containers with Docker Compose..."
+          docker compose up -d --pull always --force-recreate
 
       - name: Verify containers are running
         run: |
