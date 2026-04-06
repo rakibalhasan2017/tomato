@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = express();
 const allowedOrigins = new Set(
-  [process.env.CLIENT_URL, 'http://localhost:3000', 'http://localhost:5173']
+  [process.env.CLIENT_URL, 'http://localhost:5173']
     .filter((origin): origin is string => Boolean(origin))
     .map((origin) => origin.replace(/\/$/, '')),
 );

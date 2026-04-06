@@ -5,7 +5,7 @@ import authRoutes from './routes/authroute.js';
 import cors from 'cors';
 dotenv.config();
 const app = express();
-const allowedOrigins = new Set([process.env.CLIENT_URL, 'http://localhost:3000', 'http://localhost:5173']
+const allowedOrigins = new Set([process.env.CLIENT_URL, 'http://localhost:5173']
     .filter((origin) => Boolean(origin))
     .map((origin) => origin.replace(/\/$/, '')));
 app.use(express.json());

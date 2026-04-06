@@ -2,6 +2,24 @@ import jwt from 'jsonwebtoken';
 import { google } from 'googleapis';
 import User from '../model/user.js';
 import { oauth2Client } from '../config/googleconfig.js';
+const getOAuthErrorStatus = (error) => {
+    if (typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof error.response?.status === 'number') {
+        return error.response?.status;
+    }
+    return undefined;
+};
+const getOAuthErrorCode = (error) => {
+    if (typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof error.response?.data?.error === 'string') {
+        return error.response?.data?.error;
+    }
+    return undefined;
+};
 export const loginuser = async (req, res) => {
     const { code } = req.body;
     if (!code) {
@@ -46,8 +64,10 @@ export const loginuser = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Google OAuth Error:', error);
-        if (error.response?.status === 400) {
+        const oauthStatus = getOAuthErrorStatus(error);
+        const oauthErrorCode = getOAuthErrorCode(error);
+        console.error('Google OAuth Error:', oauthErrorCode ?? 'unknown_error', oauthStatus ?? 'n/a');
+        if (oauthStatus === 400) {
             return res.status(400).json({ error: 'Invalid or expired authorization code' });
         }
         res.status(500).json({ error: 'Authentication failed' });
@@ -118,10 +138,8 @@ export const googleCallback = async (req, res) => {
     try {
         const { tokens } = await oauth2Client.getToken(code);
         oauth2Client.setCredentials(tokens);
-        console.log('Google OAuth tokens received in the goolge callback controller:', tokens);
         const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
         const { data } = await oauth2.userinfo.get();
-        console.log('Google user info received in the google callback controller:', data);
         const { email, name, picture } = data;
         if (!email) {
             return res.redirect(`${process.env.CLIENT_URL}/login?error=no_email`);
@@ -136,7 +154,12 @@ export const googleCallback = async (req, res) => {
         res.redirect(`${process.env.CLIENT_URL}/?token=${token}`);
     }
     catch (error) {
-        console.error('OAuth callback error:', error);
+        const oauthStatus = getOAuthErrorStatus(error);
+        const oauthErrorCode = getOAuthErrorCode(error);
+        console.error('OAuth callback error:', oauthErrorCode ?? 'unknown_error', oauthStatus ?? 'n/a');
+        if (oauthStatus === 400 || oauthErrorCode === 'invalid_grant') {
+            return res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`);
+        }
         res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`);
     }
 };
@@ -147,6 +170,5 @@ export const googleAuth = (req, res) => {
         scope: ['profile', 'email'],
         prompt: 'consent',
     });
-    console.log('Redirecting to Google OAuth URL:', authUrl);
     res.redirect(authUrl);
 };

@@ -4,6 +4,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { OAuthCallback } from './pages/OAuthCallback';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { Roleadd } from './pages/Roleadd';
 
 export const App = () => {
   return (
@@ -11,6 +12,14 @@ export const App = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route
+            path="/roleadd"
+            element={
+              <ProtectedRoute>
+                <Roleadd />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
@@ -20,7 +29,7 @@ export const App = () => {
             }
           />
           <Route path="/" element={<OAuthCallback />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

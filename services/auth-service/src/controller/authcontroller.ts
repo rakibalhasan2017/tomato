@@ -11,6 +11,32 @@ interface AuthRequest extends Request {
   };
 }
 
+const getOAuthErrorStatus = (error: unknown): number | undefined => {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error &&
+    typeof (error as { response?: { status?: number } }).response?.status === 'number'
+  ) {
+    return (error as { response?: { status?: number } }).response?.status;
+  }
+
+  return undefined;
+};
+
+const getOAuthErrorCode = (error: unknown): string | undefined => {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error &&
+    typeof (error as { response?: { data?: { error?: string } } }).response?.data?.error === 'string'
+  ) {
+    return (error as { response?: { data?: { error?: string } } }).response?.data?.error;
+  }
+
+  return undefined;
+};
+
 export const loginuser = async (req: Request, res: Response) => {
   const { code } = req.body;
 
@@ -66,15 +92,11 @@ export const loginuser = async (req: Request, res: Response) => {
       },
     });
   } catch (error: unknown) {
-    console.error('Google OAuth Error:', error);
+    const oauthStatus = getOAuthErrorStatus(error);
+    const oauthErrorCode = getOAuthErrorCode(error);
+    console.error('Google OAuth Error:', oauthErrorCode ?? 'unknown_error', oauthStatus ?? 'n/a');
 
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'response' in error &&
-      typeof (error as { response?: { status?: number } }).response?.status === 'number' &&
-      (error as { response?: { status?: number } }).response?.status === 400
-    ) {
+    if (oauthStatus === 400) {
       return res.status(400).json({ error: 'Invalid or expired authorization code' });
     }
 
@@ -159,10 +181,10 @@ export const googleCallback = async (req: Request, res: Response) => {
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
-    console.log('Google OAuth tokens received in the goolge callback controller:', tokens);
+
     const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
     const { data } = await oauth2.userinfo.get();
-    console.log('Google user info received in the google callback controller:', data);
+
     const { email, name, picture } = data;
 
     if (!email) {
@@ -183,8 +205,15 @@ export const googleCallback = async (req: Request, res: Response) => {
 
     // Redirect to frontend with token
     res.redirect(`${process.env.CLIENT_URL}/?token=${token}`);
-  } catch (error) {
-    console.error('OAuth callback error:', error);
+  } catch (error: unknown) {
+    const oauthStatus = getOAuthErrorStatus(error);
+    const oauthErrorCode = getOAuthErrorCode(error);
+    console.error('OAuth callback error:', oauthErrorCode ?? 'unknown_error', oauthStatus ?? 'n/a');
+
+    if (oauthStatus === 400 || oauthErrorCode === 'invalid_grant') {
+      return res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`);
+    }
+
     res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`);
   }
 };
@@ -196,6 +225,5 @@ export const googleAuth = (req: Request, res: Response) => {
     scope: ['profile', 'email'],
     prompt: 'consent',
   });
-  console.log('Redirecting to Google OAuth URL:', authUrl);
   res.redirect(authUrl);
 };

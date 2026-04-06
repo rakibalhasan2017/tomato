@@ -24,7 +24,7 @@ export const OAuthCallback = () => {
       try {
         const userProfile = await getMyProfile(oauthToken);
         login(oauthToken, userProfile);
-        navigate('/dashboard', { replace: true });
+        navigate(userProfile.role ? '/dashboard' : '/roleadd', { replace: true });
       } catch {
         navigate('/login?error=auth_failed', { replace: true });
       }
@@ -42,7 +42,7 @@ export const OAuthCallback = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-500 to-orange-400">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-red-500 to-orange-400">
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Authentication Error</h1>
@@ -60,7 +60,7 @@ export const OAuthCallback = () => {
 
   if (token && !error && !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-500 to-orange-400">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-red-500 to-orange-400">
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 text-center">
           <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="mt-4 text-gray-600">Completing sign in...</p>
@@ -69,7 +69,7 @@ export const OAuthCallback = () => {
     );
   }
 
-  return <Navigate to="/dashboard" replace />;
+  return <Navigate to={user?.role ? '/dashboard' : '/roleadd'} replace />;
 };
 
 export default OAuthCallback;
