@@ -29,7 +29,8 @@ const getOAuthErrorCode = (error: unknown): string | undefined => {
     typeof error === 'object' &&
     error !== null &&
     'response' in error &&
-    typeof (error as { response?: { data?: { error?: string } } }).response?.data?.error === 'string'
+    typeof (error as { response?: { data?: { error?: string } } }).response?.data?.error ===
+      'string'
   ) {
     return (error as { response?: { data?: { error?: string } } }).response?.data?.error;
   }
@@ -173,7 +174,6 @@ export const myprofile = async (req: AuthRequest, res: Response) => {
 // ✅ ADD THIS - OAuth callback route (what Google redirects to)
 export const googleCallback = async (req: Request, res: Response) => {
   const { code } = req.query;
-
   if (!code || typeof code !== 'string') {
     return res.redirect(`${process.env.CLIENT_URL}/login?error=no_code`);
   }
@@ -225,5 +225,6 @@ export const googleAuth = (req: Request, res: Response) => {
     scope: ['profile', 'email'],
     prompt: 'consent',
   });
+  console.log('Redirecting to Google OAuth URL:', authUrl);
   res.redirect(authUrl);
 };

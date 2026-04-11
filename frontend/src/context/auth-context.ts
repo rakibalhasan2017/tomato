@@ -1,4 +1,5 @@
-import { createContext, useContext } from 'react';
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface User {
   id: string;
@@ -17,12 +18,20 @@ export interface AuthContextType {
   updateUser: (user: User) => void;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = create<AuthContextType>()(
+  persist(
+    (set) => ({
+      user: null,
+      token: null,
+      isLoading: false,
+      login: (token, user) => set({ token, user }),
+      logout: () => set({ token: null, user: null }),
+      updateUser: (user) => set({ user }),
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ user: state.user, token: state.token }),
+    },
+  ),
+);

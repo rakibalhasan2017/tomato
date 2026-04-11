@@ -15,7 +15,8 @@ const getOAuthErrorCode = (error) => {
     if (typeof error === 'object' &&
         error !== null &&
         'response' in error &&
-        typeof error.response?.data?.error === 'string') {
+        typeof error.response?.data?.error ===
+            'string') {
         return error.response?.data?.error;
     }
     return undefined;
@@ -170,5 +171,6 @@ export const googleAuth = (req, res) => {
         scope: ['profile', 'email'],
         prompt: 'consent',
     });
+    console.log('Redirecting to Google OAuth URL:', authUrl);
     res.redirect(authUrl);
 };
