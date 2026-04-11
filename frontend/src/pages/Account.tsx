@@ -50,7 +50,7 @@ export const Account = () => {
               </h4>
               <div className="divide-y divide-gray-100">
                 <Link
-                  to="/orders"
+                  to="/track-order"
                   className="flex items-center justify-between py-4 group hover:px-2 transition-all rounded-lg"
                 >
                   <div className="flex items-center gap-4">
@@ -72,9 +72,53 @@ export const Account = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-800 group-hover:text-red-600">
-                        My Orders
+                        Track Order
                       </p>
                       <p className="text-xs text-gray-500">View and track your packages</p>
+                    </div>
+                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition-colors"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </Link>
+
+                <Link
+                  to="/favourite-resturant"
+                  className="flex items-center justify-between py-4 group hover:px-2 transition-all rounded-lg"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.951a1 1 0 00.95.69h4.154c.969 0 1.371 1.24.588 1.81l-3.36 2.442a1 1 0 00-.364 1.118l1.285 3.95c.3.922-.755 1.688-1.539 1.118l-3.36-2.441a1 1 0 00-1.175 0l-3.36 2.441c-.783.57-1.838-.196-1.539-1.118l1.285-3.95a1 1 0 00-.364-1.118L2.98 9.378c-.783-.57-.38-1.81.588-1.81h4.154a1 1 0 00.95-.69l1.377-3.951z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800 group-hover:text-red-600">
+                        Favorites
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Quick access to your favorite restaurants
+                      </p>
                     </div>
                   </div>
                   <svg

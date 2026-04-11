@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Roleadd } from './pages/Roleadd';
 import { Account } from './pages/Account';
 import { Orders } from './pages/Orders';
+import { Favorites } from './pages/Favorites';
 
 export const App = () => {
   return (
@@ -41,6 +42,22 @@ export const App = () => {
           element={
             <ProtectedRoute>
               <Orders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/track-order"
+          element={
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/favourite-resturant"
+          element={
+            <ProtectedRoute>
+              <Favorites />
             </ProtectedRoute>
           }
         />

@@ -1,12 +1,14 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/auth-context';
-import { getMyProfile } from '../services/api';
+import { getMyProfile, updateCurrentLocation } from '../services/api';
+import { getBrowserLocation } from '../services/geolocation';
+import type { BrowserLocationError } from '../services/geolocation';
 
 export const OAuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, user } = useAuth();
+  const { login, user, setCurrentLocation } = useAuth();
 
   const token = searchParams.get('token');
   const errorParam = searchParams.get('error');
@@ -24,12 +26,37 @@ export const OAuthCallback = () => {
       try {
         const userProfile = await getMyProfile(oauthToken);
         login(oauthToken, userProfile);
+
+        try {
+          const browserLocation = await getBrowserLocation();
+          const response = await updateCurrentLocation(oauthToken, {
+            latitude: browserLocation.latitude,
+            longitude: browserLocation.longitude,
+            accuracyMeters: browserLocation.accuracyMeters,
+            capturedAt: browserLocation.capturedAt,
+            permission: 'granted',
+          });
+          setCurrentLocation(response.currentLocation);
+        } catch (locationError) {
+          try {
+            const error = locationError as BrowserLocationError;
+            const permission = error.code === 'permission_denied' ? 'denied' : 'unavailable';
+            const response = await updateCurrentLocation(oauthToken, {
+              permission,
+            });
+            setCurrentLocation(response.currentLocation);
+          } catch (locationPersistError) {
+            console.warn('Location state could not be persisted', locationPersistError);
+            setCurrentLocation(null);
+          }
+        }
+
         navigate(userProfile.role ? '/dashboard' : '/roleadd', { replace: true });
       } catch {
         navigate('/login?error=auth_failed', { replace: true });
       }
     },
-    [login, navigate],
+    [login, navigate, setCurrentLocation],
   );
 
   useEffect(() => {

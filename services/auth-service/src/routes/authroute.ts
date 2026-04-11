@@ -3,6 +3,8 @@ import {
   loginuser,
   addrole,
   myprofile,
+  updateCurrentLocation,
+  getCurrentLocation,
   googleAuth, // ✅ Add this
   googleCallback, // ✅ Add this
 } from '../controller/authcontroller.js';
@@ -18,5 +20,7 @@ router.get('/google/callback', googleCallback); // Google redirects here
 router.post('/login', loginuser); // For mobile/direct code exchange
 router.put('/addrole', verifyJWT, addrole);
 router.get('/me', verifyJWT, myprofile);
+router.put('/location', verifyJWT, updateCurrentLocation);
+router.get('/location', verifyJWT, getCurrentLocation);
 
 export default router;
