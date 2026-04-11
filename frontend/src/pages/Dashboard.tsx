@@ -1,14 +1,8 @@
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/auth-context';
+import { Navbar } from '../components/Navbar';
 
 export const Dashboard = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const { user } = useAuth();
 
   if (!user) {
     return null;
@@ -16,28 +10,7 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🍅</span>
-            <h1 className="text-xl font-bold text-gray-800">Tomato</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <img
-              src={user.image}
-              alt={user.name}
-              className="w-10 h-10 rounded-full border-2 border-red-500"
-            />
-            <button
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-red-500 font-medium transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

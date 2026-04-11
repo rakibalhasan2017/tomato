@@ -4,6 +4,8 @@ import { Dashboard } from './pages/Dashboard';
 import { OAuthCallback } from './pages/OAuthCallback';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Roleadd } from './pages/Roleadd';
+import { Account } from './pages/Account';
+import { Orders } from './pages/Orders';
 
 export const App = () => {
   return (
@@ -23,6 +25,22 @@ export const App = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Orders />
             </ProtectedRoute>
           }
         />

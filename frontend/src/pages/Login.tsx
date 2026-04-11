@@ -20,7 +20,7 @@ export const Login = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate('/roleadd');
     }
   }, [user, navigate]);
 
