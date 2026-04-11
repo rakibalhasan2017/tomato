@@ -1,13 +1,14 @@
 import { Router } from 'express';
+
 import {
   loginuser,
   addrole,
   myprofile,
-  updateCurrentLocation,
-  getCurrentLocation,
   googleAuth, // ✅ Add this
   googleCallback, // ✅ Add this
 } from '../controller/authcontroller.js';
+
+import { updateCurrentLocation, getCurrentLocation } from '../controller/locationcontroller.js';
 import { verifyJWT } from '../middleware/jwtverification.js';
 
 const router = Router();
