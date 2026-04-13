@@ -8,6 +8,7 @@ export const Account = () => {
 
   const handleLogout = () => {
     logout();
+    useAuth.persist.clearStorage();
     navigate('/login');
   };
 

@@ -1,7 +1,6 @@
 import { Router } from 'express';
 
 import {
-  loginuser,
   addrole,
   myprofile,
   googleAuth, // ✅ Add this
@@ -18,7 +17,6 @@ router.get('/google', googleAuth); // Initiate OAuth
 router.get('/google/callback', googleCallback); // Google redirects here
 
 // Existing routes
-router.post('/login', loginuser); // For mobile/direct code exchange
 router.put('/addrole', verifyJWT, addrole);
 router.get('/me', verifyJWT, myprofile);
 router.put('/location', verifyJWT, updateCurrentLocation);

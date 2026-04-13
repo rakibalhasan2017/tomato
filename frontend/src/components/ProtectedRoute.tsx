@@ -17,6 +17,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user) {
+    console.log('ProtectedRoute: No user found, redirecting to login'); // Debug log to check auth state
     return <Navigate to="/login" replace />;
   }
 

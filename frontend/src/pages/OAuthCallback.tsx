@@ -11,6 +11,7 @@ export const OAuthCallback = () => {
   const { login, user, setCurrentLocation } = useAuth();
 
   const token = searchParams.get('token');
+  console.log('OAuthCallback token:', token); // Debug log to check token value
   const errorParam = searchParams.get('error');
   const error =
     errorParam === 'no_code'
@@ -24,11 +25,12 @@ export const OAuthCallback = () => {
   const handleTokenCallback = useCallback(
     async (oauthToken: string) => {
       try {
+        console.log('OAuthCallback token callback', oauthToken); // Debug log to check token value
         const userProfile = await getMyProfile(oauthToken);
         login(oauthToken, userProfile);
-
         try {
           const browserLocation = await getBrowserLocation();
+          console.log('Browser location obtained in OAuthCallback:', browserLocation); // Debug log to check location details
           const response = await updateCurrentLocation(oauthToken, {
             latitude: browserLocation.latitude,
             longitude: browserLocation.longitude,
@@ -50,9 +52,9 @@ export const OAuthCallback = () => {
             setCurrentLocation(null);
           }
         }
-
         navigate(userProfile.role ? '/dashboard' : '/roleadd', { replace: true });
-      } catch {
+      } catch (error) {
+        console.error('Error occurred while fetching user profile:', error);
         navigate('/login?error=auth_failed', { replace: true });
       }
     },
@@ -63,7 +65,6 @@ export const OAuthCallback = () => {
     if (!token || errorParam || user) {
       return;
     }
-
     void handleTokenCallback(token);
   }, [token, errorParam, user, handleTokenCallback]);
 

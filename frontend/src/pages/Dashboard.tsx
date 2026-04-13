@@ -38,15 +38,11 @@ export const Dashboard = () => {
         if (!isCancelled) {
           setLocationLabel(address ?? formatCoordinateFallback(latitude, longitude));
         }
-
         return;
       }
-
       setLocationLabel('Location not detected yet');
     };
-
     void resolveLocationLabel();
-
     return () => {
       isCancelled = true;
     };
@@ -57,11 +53,9 @@ export const Dashboard = () => {
       setLocationError('You are not authenticated. Please sign in again.');
       return;
     }
-
     setLocationError(null);
     setIsLocating(true);
     setLocationLabel('Detecting your location...');
-
     try {
       const browserLocation = await getBrowserLocation();
       const response = await updateCurrentLocation(token, {

@@ -38,73 +38,6 @@ const getOAuthErrorCode = (error: unknown): string | undefined => {
   return undefined;
 };
 
-export const loginuser = async (req: Request, res: Response) => {
-  const { code } = req.body;
-
-  if (!code) {
-    return res.status(400).json({ error: 'Authorization code is required' });
-  }
-
-  try {
-    // Exchange code for tokens
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-
-    // Get user info using googleapis (better than axios)
-    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-    const { data } = await oauth2.userinfo.get();
-
-    const { email, name, picture } = data;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Email not provided by Google' });
-    }
-
-    // Find or create user
-    let user = await User.findOne({ email });
-    if (!user) {
-      user = new User({
-        email,
-        name,
-        image: picture, // Store Google's picture URL
-      });
-      await user.save();
-    }
-
-    // ✅ Create JWT with only essential data
-    const token = jwt.sign(
-      {
-        id: user._id.toString(),
-        email: user.email,
-      },
-      process.env.JWT_SECRET as string,
-      { expiresIn: '15d' },
-    );
-
-    res.status(200).json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        image: user.image,
-        role: user.role,
-      },
-    });
-  } catch (error: unknown) {
-    const oauthStatus = getOAuthErrorStatus(error);
-    const oauthErrorCode = getOAuthErrorCode(error);
-    console.error('Google OAuth Error:', oauthErrorCode ?? 'unknown_error', oauthStatus ?? 'n/a');
-
-    if (oauthStatus === 400) {
-      return res.status(400).json({ error: 'Invalid or expired authorization code' });
-    }
-
-    res.status(500).json({ error: 'Authentication failed' });
-  }
-};
-
 const allowedroles = ['customer', 'rider', 'seller'];
 
 export const addrole = async (req: AuthRequest, res: Response) => {
@@ -226,6 +159,5 @@ export const googleAuth = (req: Request, res: Response) => {
     scope: ['profile', 'email'],
     prompt: 'consent',
   });
-  console.log('Redirecting to Google OAuth URL:', authUrl);
   res.redirect(authUrl);
 };

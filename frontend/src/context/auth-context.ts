@@ -29,7 +29,10 @@ export const useAuth = create<AuthContextType>()(
       currentLocation: null,
       isLoading: false,
       login: (token, user) => set({ token, user }),
-      logout: () => set({ token: null, user: null, currentLocation: null }),
+      logout: () => {
+        set({ token: null, user: null, currentLocation: null });
+        useAuth.persist.clearStorage();
+      },
       updateUser: (user) => set({ user }),
       setCurrentLocation: (currentLocation) => set({ currentLocation }),
     }),

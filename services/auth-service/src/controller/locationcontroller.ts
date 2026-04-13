@@ -102,7 +102,6 @@ export const updateCurrentLocation = async (req: AuthRequest, res: Response) => 
 
 export const getCurrentLocation = async (req: AuthRequest, res: Response) => {
   const email = req.user?.email;
-
   try {
     if (!email) {
       return res.status(401).json({ error: 'User not authenticated' });
