@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authroute.js';
 import cors from 'cors';
-import { setupPrometheus } from './middleware/prometheus.js';
+import { setupPrometheus } from './config/prometheus.js';
 dotenv.config();
 const app = express();
 const allowedOrigins = new Set([process.env.CLIENT_URL, 'http://localhost:5173']
