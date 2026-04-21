@@ -16,6 +16,9 @@ COPY src ./src
 # Build TypeScript (increase heap size for compilation)
 RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
+
+
+
 # Production stage
 FROM node:20-alpine
 

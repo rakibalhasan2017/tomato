@@ -1,4 +1,15 @@
+import axios from 'axios';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const getErrorMessage = (error: unknown, fallbackMessage: string): string => {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as { error?: string; message?: string } | undefined;
+    return data?.error || data?.message || error.message || fallbackMessage;
+  }
+
+  return fallbackMessage;
+};
 
 interface UserProfile {
   id: string;
@@ -33,72 +44,72 @@ export const getGoogleAuthUrl = (): string => {
 };
 
 export const getMyProfile = async (token: string): Promise<UserProfile> => {
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  try {
+    const { data } = await axios.get<UserProfile>(`${API_BASE_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to fetch profile');
+    return data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Failed to fetch profile'));
   }
-
-  return response.json();
 };
 
 export const updateRole = async (token: string, role: string): Promise<{ message: string }> => {
-  const response = await fetch(`${API_BASE_URL}/auth/addrole`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ role }),
-  });
+  try {
+    const { data } = await axios.put<{ message: string }>(
+      `${API_BASE_URL}/auth/addrole`,
+      { role },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to update role');
+    return data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Failed to update role'));
   }
-
-  return response.json();
 };
 
 export const updateCurrentLocation = async (
   token: string,
   payload: UpdateLocationPayload,
 ): Promise<{ message: string; currentLocation: CurrentLocation | null }> => {
-  const response = await fetch(`${API_BASE_URL}/auth/location`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const { data } = await axios.put<{
+      message: string;
+      currentLocation: CurrentLocation | null;
+    }>(`${API_BASE_URL}/auth/location`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to update current location');
+    return data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Failed to update current location'));
   }
-
-  return response.json();
 };
 
 export const getCurrentLocation = async (
   token: string,
 ): Promise<{ currentLocation: CurrentLocation | null }> => {
-  const response = await fetch(`${API_BASE_URL}/auth/location`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  try {
+    const { data } = await axios.get<{ currentLocation: CurrentLocation | null }>(
+      `${API_BASE_URL}/auth/location`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to fetch current location');
+    return data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Failed to fetch current location'));
   }
-
-  return response.json();
 };
