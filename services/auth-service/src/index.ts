@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authroute.js';
 import cors from 'cors';
-import { setupPrometheus } from './config/prometheus.js';
+import { setupPrometheus } from './middleware/prometheusmiddleware.js';
 
 dotenv.config();
 
