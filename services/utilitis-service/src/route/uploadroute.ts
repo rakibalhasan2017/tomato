@@ -6,6 +6,6 @@ import { verifyJWT } from '../middleware/jwtverification';
 
 const router = express.Router();
 
-router.post('/upload', verifyJWT, upload.single('image'), uploadImage);
+router.post('/image', verifyJWT, upload.single('image'), uploadImage);
 
 export default router;
