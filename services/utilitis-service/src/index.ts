@@ -1,9 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import connectDB from './config/db';
 import cors from 'cors';
-import restaurant from './model/restaurant';
-import restaurantroute from './route/restaurantroute.js';
+import connectDB from './config/db.js';
+import uploadroute from './route/uploadroute.js';
 
 dotenv.config();
 
@@ -27,11 +26,11 @@ app.use(
   })
 );
 
-app.use('/api/restaurant', restaurantroute);
+app.use('/api/upload', uploadroute);
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002;
 
 app.listen(PORT, () => {
-  console.log(`Auth service running on port ${PORT}`);
+  console.log(`Upload service running on port ${PORT}`);
   connectDB();
 });

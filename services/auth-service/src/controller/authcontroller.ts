@@ -8,6 +8,7 @@ interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
+    role: string;
   };
 }
 
@@ -132,9 +133,9 @@ export const googleCallback = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: user._id.toString(), email: user.email },
+      { id: user._id.toString(), email: user.email, role: user.role },
       process.env.JWT_SECRET as string,
-      { expiresIn: '15d' },
+      { expiresIn: '15d' }
     );
 
     // Redirect to frontend with token
