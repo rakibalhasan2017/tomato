@@ -44,7 +44,7 @@ const addresturant = async (req, res) => {
                 headers['Authorization'] = req.headers.authorization;
             }
             const utilitiesUrl = process.env.UTILITIES_SERVICE_URL || 'http://localhost:5002';
-            const uploadResponse = await axios_1.default.post(`${utilitiesUrl}/api/upload/image`, formData, {
+            const uploadResponse = await axios_1.default.post(`${utilitiesUrl}/api/utilities/upload`, formData, {
                 headers,
             });
             if (!uploadResponse.data || !uploadResponse.data.imageUrl) {

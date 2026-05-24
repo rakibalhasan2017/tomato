@@ -26,7 +26,7 @@ app.use(
   })
 );
 
-app.use('/api/upload', uploadroute);
+app.use('/api/utilities', uploadroute);
 
 const PORT = process.env.PORT || 5002;
 

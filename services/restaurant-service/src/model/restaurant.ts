@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+
 export interface IRestaurant extends Document {
   name: string;
   description?: string;

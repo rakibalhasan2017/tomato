@@ -5,8 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const jwtverification_js_1 = require("../middleware/jwtverification.js");
-const multer_js_1 = require("../middleware/multer.js");
 const restaurant_js_1 = require("../controller/restaurant.js");
+const isseller_js_1 = require("../middleware/isseller.js");
+const multer_js_1 = require("../middleware/multer.js");
 const router = express_1.default.Router();
-router.post('/', jwtverification_js_1.verifyJWT, multer_js_1.upload.single('image'), restaurant_js_1.addresturant);
+router.post('/addnew', jwtverification_js_1.verifyJWT, isseller_js_1.isseller, multer_js_1.upload.single('image'), restaurant_js_1.addresturant);
+router.get('/myrestaurant', jwtverification_js_1.verifyJWT, isseller_js_1.isseller, restaurant_js_1.getresturant);
 exports.default = router;

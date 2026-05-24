@@ -23,7 +23,7 @@ app.use((0, cors_1.default)({
         callback(new Error(`Origin ${origin} is not allowed by CORS`));
     },
 }));
-app.use('/api/upload', uploadroute_js_1.default);
+app.use('/api/utilities', uploadroute_js_1.default);
 const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => {
     console.log(`Utilities service running on port ${PORT}`);
