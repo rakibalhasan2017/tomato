@@ -31,6 +31,6 @@ app.use('/api/upload', uploadroute);
 const PORT = process.env.PORT || 5002;
 
 app.listen(PORT, () => {
-  console.log(`Upload service running on port ${PORT}`);
+  console.log(`Utilities service running on port ${PORT}`);
   connectDB();
 });

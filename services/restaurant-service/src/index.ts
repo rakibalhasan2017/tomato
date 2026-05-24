@@ -32,6 +32,6 @@ app.use('/api/restaurant', restaurantroute);
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
-  console.log(`Auth service running on port ${PORT}`);
+  console.log(`Restaurant service running on port ${PORT}`);
   connectDB();
 });

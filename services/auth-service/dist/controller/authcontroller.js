@@ -98,7 +98,7 @@ export const googleCallback = async (req, res) => {
             user = new User({ email, name, image: picture });
             await user.save();
         }
-        const token = jwt.sign({ id: user._id.toString(), email: user.email }, process.env.JWT_SECRET, { expiresIn: '15d' });
+        const token = jwt.sign({ id: user._id.toString(), email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: '15d' });
         // Redirect to frontend with token
         res.redirect(`${process.env.CLIENT_URL}/?token=${token}`);
     }

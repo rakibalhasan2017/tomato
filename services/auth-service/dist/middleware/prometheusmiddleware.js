@@ -1,14 +1,7 @@
 import { Counter, Histogram, Gauge, collectDefaultMetrics, register } from 'prom-client';
-/* =========================
-   DEFAULT METRICS
-   (enabled once at module load)
-========================= */
 collectDefaultMetrics({
     prefix: 'node_',
 });
-/* =========================
-   METRICS DEFINITIONS
-========================= */
 // Total requests
 const httpRequestCounter = new Counter({
     name: 'http_requests_total',
@@ -33,10 +26,6 @@ const inFlightRequests = new Gauge({
     name: 'http_in_flight_requests',
     help: 'Number of requests currently being processed',
 });
-/* =========================
-   ROUTE NORMALIZATION
-   (LOW CARDINALITY SAFE)
-========================= */
 const getRouteLabel = (req) => {
     const expressRoute = req.route && typeof req.route.path === 'string' ? req.route.path : null;
     if (expressRoute) {
@@ -47,9 +36,6 @@ const getRouteLabel = (req) => {
     return (pathWithoutQuery.replace(/\/\d+/g, '/:id').replace(/\/[a-f0-9-]{24}/g, '/:id') ||
         'unknown_route');
 };
-/* =========================
-   MAIN MIDDLEWARE
-========================= */
 export const requestMetricsMiddleware = (req, res, next) => {
     if (req.path === '/metrics')
         return next();
@@ -86,9 +72,6 @@ export const requestMetricsMiddleware = (req, res, next) => {
     });
     next();
 };
-/* =========================
-   SETUP FUNCTION
-========================= */
 export const setupPrometheus = (app) => {
     app.use(requestMetricsMiddleware);
     app.get('/metrics', async (_req, res) => {

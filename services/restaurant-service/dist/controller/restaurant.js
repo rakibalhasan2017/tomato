@@ -44,7 +44,9 @@ const addresturant = async (req, res) => {
                 headers['Authorization'] = req.headers.authorization;
             }
             const utilitiesUrl = process.env.UTILITIES_SERVICE_URL || 'http://localhost:5002';
-            const uploadResponse = await axios_1.default.post(`${utilitiesUrl}/api/upload/upload`, formData, { headers });
+            const uploadResponse = await axios_1.default.post(`${utilitiesUrl}/api/upload/image`, formData, {
+                headers,
+            });
             if (!uploadResponse.data || !uploadResponse.data.imageUrl) {
                 return res.status(500).json({
                     error: 'Failed to upload image: Invalid response from utility service',
@@ -55,7 +57,9 @@ const addresturant = async (req, res) => {
         catch (uploadError) {
             console.error('Failed to upload image to utility service:', uploadError.response?.data || uploadError.message);
             return res.status(uploadError.response?.status || 500).json({
-                error: uploadError.response?.data?.error || uploadError.response?.data?.message || 'Failed to upload image to utility service',
+                error: uploadError.response?.data?.error ||
+                    uploadError.response?.data?.message ||
+                    'Failed to upload image to utility service',
             });
         }
         const autolocation = {
