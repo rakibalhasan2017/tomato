@@ -110,4 +110,32 @@ export const getmenuitem = async (req: AuthRequest, res: Response) => {
         console.log(error);
         return res.status(500).json({ message: 'Internal server error' });
     }
-}  
+}
+
+export const deletemenuitem = async (req: AuthRequest, res: Response) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+        const restaurant = await Restaurant.findOne({ owenerID: user.id });
+        if (!restaurant) {
+            return res.status(404).json({ message: 'Restaurant not found' });
+        }
+        const id = req.params.id;
+        if (!id) {
+            return res.status(400).json({ message: 'Menu item ID is required' });
+        }
+        const menuitem = await MenuItem.find({ _id: id, restaurantID: restaurant._id });
+        if (menuitem.length === 0) {
+            return res.status(403).json({ message: 'You are not authorized to delete this menu item' });
+        }
+        await MenuItem.findByIdAndDelete(id);
+        return res.status(200).json({ message: 'Menu item deleted successfully' });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}   
+
+
