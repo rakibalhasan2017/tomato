@@ -3,9 +3,10 @@ import { useAuth } from '../context/auth-context';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  allowedRoles?: string[];
 }
 
-export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -19,6 +20,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   if (!user) {
     console.log('ProtectedRoute: No user found, redirecting to login'); // Debug log to check auth state
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && (!user.role || !allowedRoles.includes(user.role))) {
+    console.log(`ProtectedRoute: User role ${user.role} not allowed, redirecting to dashboard`);
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

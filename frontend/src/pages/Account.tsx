@@ -136,6 +136,53 @@ export const Account = () => {
                   </svg>
                 </Link>
 
+                {user.role === 'seller' && (
+                  <Link
+                    to="/my-restaurant"
+                    className="flex items-center justify-between py-4 group hover:px-2 transition-all rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800 group-hover:text-red-600">
+                          My Restaurant
+                        </p>
+                        <p className="text-xs text-gray-500 font-normal">
+                          Manage your restaurant profile, details, and status
+                        </p>
+                      </div>
+                    </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition-colors"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </Link>
+                )}
+
+
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center justify-between py-4 group hover:px-2 transition-all rounded-lg text-left"

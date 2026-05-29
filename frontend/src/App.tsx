@@ -7,6 +7,7 @@ import { Roleadd } from './pages/Roleadd';
 import { Account } from './pages/Account';
 import { Orders } from './pages/Orders';
 import { Favorites } from './pages/Favorites';
+import { RestaurantPage } from './pages/Restaurant';
 
 export const App = () => {
   return (
@@ -58,6 +59,14 @@ export const App = () => {
           element={
             <ProtectedRoute>
               <Favorites />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-restaurant"
+          element={
+            <ProtectedRoute allowedRoles={['seller']}>
+              <RestaurantPage />
             </ProtectedRoute>
           }
         />
