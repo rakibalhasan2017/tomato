@@ -55,7 +55,11 @@ export const Roleadd = () => {
 
       await updateRole(token, selectedRole);
       updateUser({ ...user, role: selectedRole });
-      navigate('/dashboard', { replace: true });
+      if (selectedRole === 'seller') {
+        navigate('/my-restaurant', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } catch (submissionError) {
       setError(
         submissionError instanceof Error

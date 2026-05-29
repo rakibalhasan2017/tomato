@@ -52,7 +52,11 @@ export const OAuthCallback = () => {
             setCurrentLocation(null);
           }
         }
-        navigate(userProfile.role ? '/dashboard' : '/roleadd', { replace: true });
+        let targetPath = '/roleadd';
+        if (userProfile.role) {
+          targetPath = userProfile.role === 'seller' ? '/my-restaurant' : '/dashboard';
+        }
+        navigate(targetPath, { replace: true });
       } catch (error) {
         console.error('Error occurred while fetching user profile:', error);
         navigate('/login?error=auth_failed', { replace: true });
@@ -97,7 +101,12 @@ export const OAuthCallback = () => {
     );
   }
 
-  return <Navigate to={user?.role ? '/dashboard' : '/roleadd'} replace />;
+  let targetPath = '/roleadd';
+  if (user?.role) {
+    targetPath = user.role === 'seller' ? '/my-restaurant' : '/dashboard';
+  }
+
+  return <Navigate to={targetPath} replace />;
 };
 
 export default OAuthCallback;

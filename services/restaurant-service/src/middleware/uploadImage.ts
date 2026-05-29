@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
 
-export const uploadImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const uploadImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   if (!req.file) {
     next();
     return;
@@ -29,6 +33,7 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
       });
       return;
     }
+    console.log('Image uploaded successfully:', uploadResponse.data);
 
     req.body.imageUrl = uploadResponse.data.imageUrl;
     req.body.image = uploadResponse.data.imageUrl;

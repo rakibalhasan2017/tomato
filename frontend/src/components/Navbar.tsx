@@ -11,7 +11,7 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link
-          to="/dashboard"
+          to={user?.role === 'seller' ? '/my-restaurant' : '/dashboard'}
           className="flex items-center gap-3 transition-transform hover:scale-105"
         >
           <span className="text-2xl">🍅</span>

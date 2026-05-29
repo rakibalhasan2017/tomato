@@ -20,7 +20,13 @@ export const Login = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/roleadd');
+      if (user.role === 'seller') {
+        navigate('/my-restaurant', { replace: true });
+      } else if (user.role) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate('/roleadd', { replace: true });
+      }
     }
   }, [user, navigate]);
 
