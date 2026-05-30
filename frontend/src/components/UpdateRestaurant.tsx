@@ -59,7 +59,7 @@ export const UpdateRestaurant: React.FC<UpdateRestaurantProps> = ({
       const location = await getBrowserLocation();
       setLatitude(location.latitude);
       setLongitude(location.longitude);
-      
+
       const address = await reverseGeocode(location.latitude, location.longitude);
       if (address) {
         setFormattedAddress(address);
@@ -97,7 +97,13 @@ export const UpdateRestaurant: React.FC<UpdateRestaurantProps> = ({
     onSuccess(null);
 
     // Validations
-    if (!name.trim() || !phonenumber.trim() || !formattedAddress.trim() || latitude === '' || longitude === '') {
+    if (
+      !name.trim() ||
+      !phonenumber.trim() ||
+      !formattedAddress.trim() ||
+      latitude === '' ||
+      longitude === ''
+    ) {
       onError('Please fill out all required fields.');
       return;
     }
@@ -248,7 +254,9 @@ export const UpdateRestaurant: React.FC<UpdateRestaurantProps> = ({
                     type="number"
                     step="any"
                     value={latitude}
-                    onChange={(e) => setLatitude(e.target.value !== '' ? Number(e.target.value) : '')}
+                    onChange={(e) =>
+                      setLatitude(e.target.value !== '' ? Number(e.target.value) : '')
+                    }
                     placeholder="e.g. 40.7128"
                     className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:border-red-400 transition bg-gray-50/50"
                   />
@@ -261,7 +269,9 @@ export const UpdateRestaurant: React.FC<UpdateRestaurantProps> = ({
                     type="number"
                     step="any"
                     value={longitude}
-                    onChange={(e) => setLongitude(e.target.value !== '' ? Number(e.target.value) : '')}
+                    onChange={(e) =>
+                      setLongitude(e.target.value !== '' ? Number(e.target.value) : '')
+                    }
                     placeholder="e.g. -74.0060"
                     className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:border-red-400 transition bg-gray-50/50"
                   />
