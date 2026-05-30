@@ -12,17 +12,12 @@ const addmenuitem = async (req, res) => {
         if (!user) {
             return res.status(401).json({ error: 'User not authenticated' });
         }
-        const { name, description, price, image, category, isavailable } = req.body;
+        const { name, description, price, image, isavailable } = req.body;
         const restaurant = await restaurant_1.default.findOne({ owenerID: user.id });
         if (!restaurant) {
             return res.status(404).json({ message: 'Restaurant not found' });
         }
-        if (!name ||
-            !description ||
-            !price ||
-            !image ||
-            !category ||
-            isavailable === undefined) {
+        if (!name || !description || !price || !image || isavailable === undefined) {
             return res.status(400).json({
                 error: 'Missing required fields',
             });
@@ -32,7 +27,6 @@ const addmenuitem = async (req, res) => {
             description,
             price,
             image,
-            category,
             isavailable,
             restaurantID: restaurant._id,
         });
@@ -98,7 +92,7 @@ const updatemenuitem = async (req, res) => {
             return res.status(401).json({ error: 'User not authenticated' });
         }
         const restaurant = await restaurant_1.default.findOne({
-            owenerID: user.id
+            owenerID: user.id,
         });
         if (!restaurant) {
             return res.status(404).json({ message: 'Restaurant not found' });
@@ -109,11 +103,11 @@ const updatemenuitem = async (req, res) => {
         }
         const menuitem = await menuitem_1.default.findOne({
             _id: id,
-            restaurantID: restaurant._id
+            restaurantID: restaurant._id,
         });
         if (!menuitem) {
             return res.status(403).json({
-                message: 'You are not authorized or item not found'
+                message: 'You are not authorized or item not found',
             });
         }
         const { name, description, price, image, isavailable } = req.body;
@@ -130,13 +124,13 @@ const updatemenuitem = async (req, res) => {
         await menuitem.save();
         return res.status(200).json({
             message: 'Menu item updated successfully',
-            menuitem
+            menuitem,
         });
     }
     catch (error) {
         console.log(error);
         return res.status(500).json({
-            message: 'Internal server error'
+            message: 'Internal server error',
         });
     }
 };

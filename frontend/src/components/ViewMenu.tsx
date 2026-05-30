@@ -1,93 +1,138 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useMenu } from '../context/menu-context';
+import {
+  getMenuItems,
+  deleteMenuItem as apiDeleteMenuItem,
+  updateMenuItem as apiUpdateMenuItem,
+} from '../services/api';
+import { UpdateMenuItem } from './UpdateMenuItem';
 
 interface MenuItem {
   id: string;
   name: string;
   price: number;
-  category: string;
   description: string;
   image: string;
   isAvailable: boolean;
 }
 
-const MOCK_MENU: MenuItem[] = [
-  {
-    id: '1',
-    name: 'Margherita Pizza',
-    price: 12.99,
-    category: 'Main Course',
-    description: 'Fresh mozzarella, san marzano tomatoes, fresh basil, and extra virgin olive oil.',
-    image: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isAvailable: true,
-  },
-  {
-    id: '2',
-    name: 'Truffle Parmesan Fries',
-    price: 8.49,
-    category: 'Starters',
-    description: 'Crispy golden fries tossed in black truffle oil, freshly grated parmesan cheese, and parsley.',
-    image: 'https://images.unsplash.com/photo-1576107232684-1279f390859f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isAvailable: true,
-  },
-  {
-    id: '3',
-    name: 'Chocolate Lava Cake',
-    price: 6.99,
-    category: 'Desserts',
-    description: 'Warm chocolate cake with a molten chocolate center, served with vanilla bean ice cream.',
-    image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isAvailable: false,
-  },
-];
-
 interface ViewMenuProps {
   token: string;
+  onSuccess?: (message: string | null) => void;
+  onError?: (message: string | null) => void;
 }
 
-export const ViewMenu: React.FC<ViewMenuProps> = ({ token }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(MOCK_MENU);
+export const ViewMenu: React.FC<ViewMenuProps> = ({ token, onSuccess, onError }) => {
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const {
+    menuItems: contextItems,
+    menuLoading,
+    menuError,
+    setMenuItems,
+    updateMenuItem,
+    deleteMenuItem,
+    setMenuLoading,
+    setMenuError,
+  } = useMenu();
 
-  const categories = ['All', 'Starters', 'Main Course', 'Desserts', 'Beverages'];
+  // Map context items to UI items
+  const menuItems = contextItems.map((item) => ({
+    id: item._id,
+    name: item.name,
+    price: item.price,
+    description: item.description || '',
+    image: item.image,
+    isAvailable: item.isavailable,
+  }));
 
-  const filteredItems = selectedCategory === 'All'
-    ? menuItems
-    : menuItems.filter(item => item.category === selectedCategory);
-
-  const toggleAvailability = (id: string) => {
+  useEffect(() => {
     if (!token) return;
-    setMenuItems(prev =>
-      prev.map(item => (item.id === id ? { ...item, isAvailable: !item.isAvailable } : item))
-    );
+    const fetchMenu = async () => {
+      setMenuLoading(true);
+      setMenuError(null);
+      try {
+        const items = await getMenuItems(token);
+        setMenuItems(items);
+      } catch (err: any) {
+        setMenuError(err.message || 'Failed to load menu items');
+      } finally {
+        setMenuLoading(false);
+      }
+    };
+    void fetchMenu();
+  }, [token, setMenuItems, setMenuLoading, setMenuError]);
+
+  const toggleAvailability = async (id: string) => {
+    if (!token) return;
+    const item = menuItems.find((i) => i.id === id);
+    if (!item) return;
+    if (onError) onError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('isavailable', String(!item.isAvailable));
+      const updated = await apiUpdateMenuItem(token, id, formData);
+      updateMenuItem(updated);
+    } catch (err: any) {
+      if (onError) onError(err.message || 'Failed to toggle availability');
+      console.error('Failed to toggle availability:', err);
+    }
   };
+
+  const handleDelete = async (id: string) => {
+    if (!token) return;
+    if (!window.confirm('Are you sure you want to delete this menu item?')) return;
+    if (onError) onError(null);
+    if (onSuccess) onSuccess(null);
+    try {
+      await apiDeleteMenuItem(token, id);
+      deleteMenuItem(id);
+      if (onSuccess) onSuccess('Menu item deleted successfully!');
+    } catch (err: any) {
+      if (onError) onError(err.message || 'Failed to delete menu item');
+      console.error('Failed to delete menu item:', err);
+    }
+  };
+
+  if (editingItem) {
+    return (
+      <UpdateMenuItem
+        token={token}
+        menuItem={editingItem}
+        onCancel={() => setEditingItem(null)}
+        onSuccess={onSuccess}
+        onError={onError}
+      />
+    );
+  }
+
+  if (menuLoading && menuItems.length === 0) {
+    return (
+      <div className="flex justify-center items-center py-10">
+        <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (menuError) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm">
+        {menuError}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Category Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${selectedCategory === cat
-              ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
-              : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
-              }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
       {/* Grid List */}
-      {filteredItems.length === 0 ? (
+      {menuItems.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <span className="text-4xl">🍽️</span>
-          <p className="text-gray-500 text-sm mt-3 font-medium">No items found in this category.</p>
+          <p className="text-gray-500 text-sm mt-3 font-medium">No items found.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredItems.map(item => (
+          {menuItems.map((item) => (
             <div
               key={item.id}
               className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex transition-all duration-300 hover:shadow-md ${!item.isAvailable ? 'opacity-80' : ''
@@ -95,11 +140,7 @@ export const ViewMenu: React.FC<ViewMenuProps> = ({ token }) => {
             >
               {/* Image */}
               <div className="w-1/3 relative bg-gray-100 min-h-[120px]">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
+                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                 {!item.isAvailable && (
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
                     <span className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider">
@@ -114,11 +155,10 @@ export const ViewMenu: React.FC<ViewMenuProps> = ({ token }) => {
                 <div>
                   <div className="flex justify-between items-start gap-2">
                     <h4 className="font-bold text-gray-800 text-sm line-clamp-1">{item.name}</h4>
-                    <span className="text-red-500 font-extrabold text-sm">${item.price.toFixed(2)}</span>
+                    <span className="text-red-500 font-extrabold text-sm">
+                      ${item.price.toFixed(2)}
+                    </span>
                   </div>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mt-0.5">
-                    {item.category}
-                  </span>
                   <p className="text-xs text-gray-500 line-clamp-2 mt-2 leading-relaxed">
                     {item.description}
                   </p>
@@ -141,10 +181,16 @@ export const ViewMenu: React.FC<ViewMenuProps> = ({ token }) => {
                   </div>
 
                   <div className="flex gap-2.5">
-                    <button className="text-xs font-bold text-blue-500 hover:text-blue-600 transition cursor-pointer">
+                    <button
+                      onClick={() => setEditingItem(item)}
+                      className="text-xs font-bold text-blue-500 hover:text-blue-600 transition cursor-pointer"
+                    >
                       Edit
                     </button>
-                    <button className="text-xs font-bold text-red-500 hover:text-red-600 transition cursor-pointer">
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="text-xs font-bold text-red-500 hover:text-red-600 transition cursor-pointer"
+                    >
                       Delete
                     </button>
                   </div>

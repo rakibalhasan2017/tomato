@@ -242,7 +242,7 @@ export const RestaurantPage = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                       }`}
                   >
-                    Edit Menu
+                    Add Menu
                   </button>
                   <button
                     onClick={() => setActiveTab('stats')}
@@ -256,7 +256,13 @@ export const RestaurantPage = () => {
                 </div>
 
                 <div className="mt-6">
-                  {activeTab === 'view' && <ViewMenu token={token || ''} />}
+                  {activeTab === 'view' && (
+                    <ViewMenu
+                      token={token || ''}
+                      onSuccess={setSuccessMessage}
+                      onError={setActionError}
+                    />
+                  )}
                   {activeTab === 'edit' && (
                     <AddMenuItem
                       token={token || ''}

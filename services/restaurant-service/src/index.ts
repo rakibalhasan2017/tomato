@@ -4,6 +4,7 @@ import connectDB from './config/db';
 import cors from 'cors';
 import restaurant from './model/restaurant';
 import restaurantroute from './route/restaurantroute.js';
+import menuroute from './route/menuroute.js';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use(
 );
 
 app.use('/api/restaurant', restaurantroute);
+app.use('/api/menu', menuroute);
 
 const PORT = process.env.PORT || 5001;
 

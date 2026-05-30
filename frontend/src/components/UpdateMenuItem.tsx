@@ -1,21 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMenu } from '../context/menu-context';
-import { createMenuItem } from '../services/api';
+import { updateMenuItem as apiUpdateMenuItem } from '../services/api';
 
-interface AddMenuItemProps {
-  token: string;
-  onSuccess?: (message: string | null) => void;
-  onError?: (message: string | null) => void;
+interface MenuItem {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  image: string;
+  isAvailable: boolean;
 }
 
-export const AddMenuItem: React.FC<AddMenuItemProps> = ({ token, onSuccess, onError }) => {
-  const { addMenuItem } = useMenu();
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState<number | ''>('');
-  const [description, setDescription] = useState('');
+interface UpdateMenuItemProps {
+  token: string;
+  menuItem: MenuItem;
+  onSuccess?: (message: string | null) => void;
+  onError?: (message: string | null) => void;
+  onCancel: () => void;
+}
+
+export const UpdateMenuItem: React.FC<UpdateMenuItemProps> = ({
+  token,
+  menuItem,
+  onSuccess,
+  onError,
+  onCancel,
+}) => {
+  const { updateMenuItem } = useMenu();
+  const [name, setName] = useState(menuItem.name);
+  const [price, setPrice] = useState<number | ''>(menuItem.price);
+  const [description, setDescription] = useState(menuItem.description);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(menuItem.image);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setName(menuItem.name);
+    setPrice(menuItem.price);
+    setDescription(menuItem.description);
+    setImagePreview(menuItem.image);
+    setImageFile(null);
+  }, [menuItem]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -32,10 +57,6 @@ export const AddMenuItem: React.FC<AddMenuItemProps> = ({ token, onSuccess, onEr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
-    if (!imageFile) {
-      if (onError) onError('Item image is required');
-      return;
-    }
     setIsLoading(true);
     if (onError) onError(null);
     if (onSuccess) onSuccess(null);
@@ -45,21 +66,17 @@ export const AddMenuItem: React.FC<AddMenuItemProps> = ({ token, onSuccess, onEr
       formData.append('name', name);
       formData.append('price', String(price));
       formData.append('description', description);
-      formData.append('image', imageFile);
-      formData.append('isavailable', 'true'); // required by controller
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+      formData.append('isavailable', String(menuItem.isAvailable));
 
-      const newItem = await createMenuItem(token, formData);
-      addMenuItem(newItem);
-      if (onSuccess) onSuccess('Menu item added successfully!');
-
-      // Reset form
-      setName('');
-      setPrice('');
-      setDescription('');
-      setImageFile(null);
-      setImagePreview(null);
+      const updatedRaw = await apiUpdateMenuItem(token, menuItem.id, formData);
+      updateMenuItem(updatedRaw);
+      if (onSuccess) onSuccess('Menu item updated successfully!');
+      onCancel();
     } catch (err: any) {
-      if (onError) onError(err.message || 'Failed to add menu item');
+      if (onError) onError(err.message || 'Failed to update menu item');
     } finally {
       setIsLoading(false);
     }
@@ -67,24 +84,24 @@ export const AddMenuItem: React.FC<AddMenuItemProps> = ({ token, onSuccess, onEr
 
   return (
     <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-      <div className="bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 px-6 py-5 text-white">
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 px-6 py-5 text-white">
         <h3 className="text-xl font-black flex items-center gap-2">
-          <span>🍔</span> Add New Menu Item
+          <span>✏️</span> Edit Menu Item: {menuItem.name}
         </h3>
-        <p className="text-xs text-red-50/80 mt-1">
-          Create delicious new offerings to showcase on your public menu.
+        <p className="text-xs text-blue-50/80 mt-1">
+          Modify the item details, pricing, or description below.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left Side: Images and Description */}
+          {/* Left Side: Image and Description */}
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                 Item Image
               </label>
-              <div className="relative group border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:border-red-400 transition-all bg-gray-50/50 overflow-hidden flex flex-col justify-center items-center min-h-[160px]">
+              <div className="relative group border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:border-blue-400 transition-all bg-gray-55/50 overflow-hidden flex flex-col justify-center items-center min-h-[160px]">
                 {imagePreview ? (
                   <>
                     <img
@@ -124,7 +141,7 @@ export const AddMenuItem: React.FC<AddMenuItemProps> = ({ token, onSuccess, onEr
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="List ingredients, dietary notes, portion size..."
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 transition text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 transition text-sm"
               />
             </div>
           </div>
@@ -140,7 +157,7 @@ export const AddMenuItem: React.FC<AddMenuItemProps> = ({ token, onSuccess, onEr
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Gourmet Margherita Pizza"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 transition text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 transition text-sm"
                 required
               />
             </div>
@@ -156,20 +173,27 @@ export const AddMenuItem: React.FC<AddMenuItemProps> = ({ token, onSuccess, onEr
                 value={price}
                 onChange={(e) => setPrice(e.target.value !== '' ? Number(e.target.value) : '')}
                 placeholder="e.g. 14.99"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 transition text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 transition text-sm"
                 required
               />
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-gray-50">
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-5 py-3 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition text-sm cursor-pointer"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white font-bold text-sm transition shadow-md disabled:opacity-60"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 text-white font-bold text-sm transition shadow-md disabled:opacity-60 cursor-pointer"
           >
-            {isLoading ? 'Saving...' : 'Add Item to Menu'}
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </form>
