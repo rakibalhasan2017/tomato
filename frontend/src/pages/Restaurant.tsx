@@ -4,36 +4,10 @@ import { useRestaurant } from '../context/restaurant-context';
 import { Navbar } from '../components/Navbar';
 import { AddRestaurant } from '../components/AddRestaurant';
 import { UpdateRestaurant } from '../components/UpdateRestaurant';
+import { AddMenuItem } from '../components/AddMenuItem';
+import { ViewMenu } from '../components/ViewMenu';
+import { MenuSalesStats } from '../components/MenuSalesStats';
 import { getMyRestaurant, updateRestaurant as apiUpdateRestaurant } from '../services/api';
-
-const ViewMenu = () => {
-  return (
-    <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
-      <h3 className="text-lg font-bold text-gray-800 mb-2">View Menu</h3>
-      <p className="text-gray-500 text-sm">List of all menu items will be displayed here.</p>
-    </div>
-  );
-};
-
-const EditMenu = () => {
-  return (
-    <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
-      <h3 className="text-lg font-bold text-gray-800 mb-2">Edit Menu</h3>
-      <p className="text-gray-500 text-sm">Add, update, or delete menu items.</p>
-    </div>
-  );
-};
-
-const MenuSalesStats = () => {
-  return (
-    <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
-      <h3 className="text-lg font-bold text-gray-800 mb-2">Menu Sales Statistics</h3>
-      <p className="text-gray-500 text-sm">
-        Track sales performance and popularity of individual items here.
-      </p>
-    </div>
-  );
-};
 
 export const RestaurantPage = () => {
   const { token, user } = useAuth();
@@ -200,11 +174,10 @@ export const RestaurantPage = () => {
                   <button
                     onClick={handleStatusToggle}
                     disabled={isLoading}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 ${
-                      restaurant.isopen
-                        ? 'bg-green-500 hover:bg-green-600 text-white'
-                        : 'bg-red-500 hover:bg-red-600 text-white'
-                    }`}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 ${restaurant.isopen
+                      ? 'bg-green-500 hover:bg-green-600 text-white'
+                      : 'bg-red-500 hover:bg-red-600 text-white'
+                      }`}
                   >
                     {restaurant.isopen ? '● Open' : '○ Closed'}
                   </button>
@@ -255,40 +228,43 @@ export const RestaurantPage = () => {
                 <div className="flex border-b border-gray-200">
                   <button
                     onClick={() => setActiveTab('view')}
-                    className={`pb-4 px-6 text-sm font-bold border-b-2 transition-all ${
-                      activeTab === 'view'
-                        ? 'border-red-500 text-red-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
+                    className={`pb-4 px-6 text-sm font-bold border-b-2 transition-all ${activeTab === 'view'
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
                   >
                     View Menu
                   </button>
                   <button
                     onClick={() => setActiveTab('edit')}
-                    className={`pb-4 px-6 text-sm font-bold border-b-2 transition-all ${
-                      activeTab === 'edit'
-                        ? 'border-red-500 text-red-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
+                    className={`pb-4 px-6 text-sm font-bold border-b-2 transition-all ${activeTab === 'edit'
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
                   >
                     Edit Menu
                   </button>
                   <button
                     onClick={() => setActiveTab('stats')}
-                    className={`pb-4 px-6 text-sm font-bold border-b-2 transition-all ${
-                      activeTab === 'stats'
-                        ? 'border-red-500 text-red-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
+                    className={`pb-4 px-6 text-sm font-bold border-b-2 transition-all ${activeTab === 'stats'
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
                   >
                     Sales Statistics
                   </button>
                 </div>
 
                 <div className="mt-6">
-                  {activeTab === 'view' && <ViewMenu />}
-                  {activeTab === 'edit' && <EditMenu />}
-                  {activeTab === 'stats' && <MenuSalesStats />}
+                  {activeTab === 'view' && <ViewMenu token={token || ''} />}
+                  {activeTab === 'edit' && (
+                    <AddMenuItem
+                      token={token || ''}
+                      onSuccess={setSuccessMessage}
+                      onError={setActionError}
+                    />
+                  )}
+                  {activeTab === 'stats' && <MenuSalesStats token={token || ''} />}
                 </div>
               </div>
             </div>
