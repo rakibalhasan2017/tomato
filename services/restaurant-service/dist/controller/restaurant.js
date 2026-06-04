@@ -85,7 +85,7 @@ const updateresturant = async (req, res) => {
         if (!restaurant) {
             return res.status(404).json({ error: 'Restaurant not found for this user' });
         }
-        const { name, description, phonenumber, latitude, longitude, formattedAddress, imageUrl, status } = req.body;
+        const { name, description, phonenumber, latitude, longitude, formattedAddress, imageUrl, status, } = req.body;
         const updateFields = {
             name,
             description,
@@ -117,28 +117,46 @@ exports.updateresturant = updateresturant;
 const nearbyresturant = async (req, res) => {
     try {
         const { latitude, longitude } = req.query;
-        if (latitude === undefined ||
-            longitude === undefined ||
-            isNaN(Number(latitude)) ||
-            isNaN(Number(longitude))) {
-            return res.status(400).json({ error: 'Missing or invalid latitude/longitude query parameters' });
+        if (latitude === undefined || longitude === undefined) {
+            return res.status(400).json({
+                error: 'Missing or invalid latitude/longitude query parameters',
+            });
         }
-        const nearbyRestaurants = await restaurant_js_1.default.find({
-            autolocation: {
-                $near: {
-                    $geometry: {
+        const restaurants = await restaurant_js_1.default.aggregate([
+            {
+                $geoNear: {
+                    near: {
                         type: 'Point',
                         coordinates: [Number(longitude), Number(latitude)],
                     },
-                    $maxDistance: 5000,
+                    distanceField: 'distance',
+                    maxDistance: 5000,
+                    spherical: true,
                 },
             },
+            {
+                $addFields: {
+                    isClosedSort: {
+                        $cond: [{ $eq: ['$isopen', true] }, 0, 1],
+                    },
+                },
+            },
+            {
+                $sort: {
+                    isClosedSort: 1, // Open first
+                    distance: 1, // Nearest first
+                },
+            },
+        ]);
+        return res.status(200).json({
+            restaurants,
         });
-        return res.status(200).json({ restaurants: nearbyRestaurants });
     }
     catch (error) {
         console.error('Get nearby restaurants error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({
+            error: 'Internal server error',
+        });
     }
 };
 exports.nearbyresturant = nearbyresturant;

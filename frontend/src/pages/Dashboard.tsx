@@ -1,166 +1,161 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/auth-context';
 import { Navbar } from '../components/Navbar';
-import { getBrowserLocation, reverseGeocode } from '../services/geolocation';
-import { updateCurrentLocation } from '../services/api';
-import type { BrowserLocationError } from '../services/geolocation';
+import { LocationDetector } from '../components/LocationDetector';
+import { NearbyRestaurants } from '../components/NearbyRestaurants';
+import { useLocationDetection } from '../hooks/useLocationDetection';
 
 export const Dashboard = () => {
-  const { user, token, currentLocation, setCurrentLocation } = useAuth();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
-  const [locationLabel, setLocationLabel] = useState('Location not detected yet');
 
-  const formatCoordinateFallback = (latitude: number, longitude: number) =>
-    `Lat ${latitude.toFixed(5)}, Lng ${longitude.toFixed(5)}`;
+  const {
+    locationLabel,
+    locationError,
+    isLocating,
+    locationGranted,
+    coordinates,
+    handleGetLocation,
+  } = useLocationDetection();
 
-  useEffect(() => {
-    let isCancelled = false;
-
-    const resolveLocationLabel = async () => {
-      if (currentLocation?.permission === 'denied') {
-        setLocationLabel('Location access was denied');
-        return;
-      }
-
-      if (currentLocation?.permission === 'unavailable') {
-        setLocationLabel('Location is unavailable right now');
-        return;
-      }
-
-      if (currentLocation?.permission === 'granted' && currentLocation.point?.coordinates) {
-        const [longitude, latitude] = currentLocation.point.coordinates;
-        setLocationLabel('Resolving location address...');
-
-        const address = await reverseGeocode(latitude, longitude);
-
-        if (!isCancelled) {
-          setLocationLabel(address ?? formatCoordinateFallback(latitude, longitude));
-        }
-        return;
-      }
-      setLocationLabel('Location not detected yet');
-    };
-    void resolveLocationLabel();
-    return () => {
-      isCancelled = true;
-    };
-  }, [currentLocation]);
-
-  const handleGetLocation = async () => {
-    if (!token) {
-      setLocationError('You are not authenticated. Please sign in again.');
-      return;
-    }
-    setLocationError(null);
-    setIsLocating(true);
-    setLocationLabel('Detecting your location...');
-    try {
-      const browserLocation = await getBrowserLocation();
-      const response = await updateCurrentLocation(token, {
-        latitude: browserLocation.latitude,
-        longitude: browserLocation.longitude,
-        accuracyMeters: browserLocation.accuracyMeters,
-        capturedAt: browserLocation.capturedAt,
-        permission: 'granted',
-      });
-
-      setCurrentLocation(response.currentLocation);
-
-      if (response.currentLocation?.point?.coordinates) {
-        const [longitude, latitude] = response.currentLocation.point.coordinates;
-        setLocationLabel('Resolving location address...');
-        const address = await reverseGeocode(latitude, longitude);
-        setLocationLabel(address ?? formatCoordinateFallback(latitude, longitude));
-      } else {
-        setLocationLabel('Location detected successfully');
-      }
-    } catch (error) {
-      const locationError = error as BrowserLocationError;
-      const permission = locationError.code === 'permission_denied' ? 'denied' : 'unavailable';
-      await updateCurrentLocation(token, { permission });
-      setCurrentLocation(null);
-      setLocationLabel(
-        permission === 'denied'
-          ? 'Location access was denied'
-          : 'Location is unavailable right now',
-      );
-      setLocationError(
-        locationError?.message
-          ? locationError.message
-          : 'Unable to fetch location. Please try again.',
-      );
-    } finally {
-      setIsLocating(false);
-    }
-  };
-
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <div className="flex items-center gap-6">
-            <img
-              src={user.image}
-              alt={user.name}
-              className="w-20 h-20 rounded-full border-4 border-red-500"
-            />
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">Welcome back, {user.name}!</h2>
-              <p className="text-gray-500">{user.email}</p>
-              {user.role && (
-                <span className="inline-block mt-2 px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium capitalize">
-                  {user.role}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* Hero Banner */}
+      <section className="bg-gradient-to-br from-red-600 via-red-500 to-orange-400 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+          <p className="text-red-100 text-sm font-medium mb-1">Hey {user.name.split(' ')[0]} 👋</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-2 leading-tight">
+            What would you like
+            <br className="hidden sm:block" /> to eat today?
+          </h2>
+          <p className="text-red-100 text-sm mb-6">
+            Discover restaurants near you and order in minutes
+          </p>
 
-        {/* Quick Actions */}
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Find Restaurants</h3>
-        {locationError && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {locationError}
-          </div>
-        )}
-        <div className="bg-white rounded-2xl shadow-md p-6">
-          <div className="flex flex-col md:flex-row gap-3">
+          {/* Search Bar */}
+          <div className="bg-white rounded-2xl shadow-lg p-2 flex items-center gap-2 max-w-2xl mb-4">
+            <div className="pl-3 text-gray-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"
+                />
+              </svg>
+            </div>
             <input
               type="text"
               value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search restaurants..."
-              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300"
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search for restaurants or dishes..."
+              className="flex-1 py-2.5 text-gray-800 bg-transparent focus:outline-none text-sm"
             />
-            <button
-              type="button"
-              onClick={() => {
-                void handleGetLocation();
-              }}
-              disabled={isLocating}
-              className="px-5 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isLocating ? 'Getting location...' : 'Get Location'}
-            </button>
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="text-gray-400 hover:text-gray-600 px-2"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
-          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-              Current Location
-            </p>
-            <p className="text-sm text-gray-700">{locationLabel}</p>
-          </div>
+          {/* Location Detector */}
+          <LocationDetector
+            locationLabel={locationLabel}
+            locationError={locationError}
+            isLocating={isLocating}
+            locationGranted={locationGranted}
+            onGetLocation={() => {
+              void handleGetLocation();
+            }}
+          />
         </div>
+      </section>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+        {/* Quick Links */}
+        <section>
+          <div className="grid grid-cols-3 gap-4">
+            <Link
+              to="/orders"
+              className="bg-white rounded-2xl shadow-sm p-5 flex flex-col items-center gap-2 hover:shadow-md hover:scale-[1.02] transition-all group text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-2xl group-hover:bg-orange-200 transition">
+                📦
+              </div>
+              <span className="text-sm font-semibold text-gray-700">My Orders</span>
+              <span className="text-xs text-gray-400">Track your food</span>
+            </Link>
+
+            <Link
+              to="/favourite-resturant"
+              className="bg-white rounded-2xl shadow-sm p-5 flex flex-col items-center gap-2 hover:shadow-md hover:scale-[1.02] transition-all group text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-2xl group-hover:bg-red-200 transition">
+                ❤️
+              </div>
+              <span className="text-sm font-semibold text-gray-700">Favourites</span>
+              <span className="text-xs text-gray-400">Saved restaurants</span>
+            </Link>
+
+            <Link
+              to="/account"
+              className="bg-white rounded-2xl shadow-sm p-5 flex flex-col items-center gap-2 hover:shadow-md hover:scale-[1.02] transition-all group text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-blue-300 transition">
+                <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+              </div>
+              <span className="text-sm font-semibold text-gray-700">Account</span>
+              <span className="text-xs text-gray-400">Profile & settings</span>
+            </Link>
+          </div>
+        </section>
+
+        {/* Promotional Banner */}
+        <section className="bg-gradient-to-r from-orange-400 to-yellow-400 rounded-2xl p-6 flex items-center justify-between overflow-hidden relative">
+          <div className="relative z-10">
+            <p className="text-white font-bold text-xl md:text-2xl leading-tight">
+              50% off your
+              <br />
+              first order!
+            </p>
+            <p className="text-orange-100 text-sm mt-1 mb-4">
+              Use code <span className="font-bold text-white">TOMATO50</span>
+            </p>
+            <button
+              type="button"
+              className="bg-white text-orange-500 font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-orange-50 transition shadow"
+            >
+              Order Now
+            </button>
+          </div>
+          <div className="text-7xl md:text-8xl absolute right-6 opacity-30 select-none pointer-events-none">
+            🍅
+          </div>
+        </section>
+
+        {/* Nearby Restaurants */}
+        <NearbyRestaurants
+          coordinates={coordinates}
+          searchTerm={searchTerm}
+          onDetectLocation={() => {
+            void handleGetLocation();
+          }}
+        />
       </main>
     </div>
   );

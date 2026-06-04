@@ -102,7 +102,16 @@ export const updateresturant = async (req: AuthRequest, res: Response) => {
     if (!restaurant) {
       return res.status(404).json({ error: 'Restaurant not found for this user' });
     }
-    const { name, description, phonenumber, latitude, longitude, formattedAddress, imageUrl, status } = req.body;
+    const {
+      name,
+      description,
+      phonenumber,
+      latitude,
+      longitude,
+      formattedAddress,
+      imageUrl,
+      status,
+    } = req.body;
 
     const updateFields: any = {
       name,
@@ -129,7 +138,6 @@ export const updateresturant = async (req: AuthRequest, res: Response) => {
       { new: true }
     );
 
-
     return res.status(200).json({
       message: 'Restaurant updated successfully',
       restaurant: updatedRestaurant,
@@ -144,12 +152,7 @@ export const nearbyresturant = async (req: Request, res: Response) => {
   try {
     const { latitude, longitude } = req.query;
 
-    if (
-      latitude === undefined ||
-      longitude === undefined ||
-      isNaN(Number(latitude)) ||
-      isNaN(Number(longitude))
-    ) {
+    if (latitude === undefined || longitude === undefined) {
       return res.status(400).json({
         error: 'Missing or invalid latitude/longitude query parameters',
       });
@@ -170,14 +173,14 @@ export const nearbyresturant = async (req: Request, res: Response) => {
       {
         $addFields: {
           isClosedSort: {
-            $cond: [{ $eq: ['$isOpen', true] }, 0, 1],
+            $cond: [{ $eq: ['$isopen', true] }, 0, 1],
           },
         },
       },
       {
         $sort: {
           isClosedSort: 1, // Open first
-          distance: 1,     // Nearest first
+          distance: 1, // Nearest first
         },
       },
     ]);

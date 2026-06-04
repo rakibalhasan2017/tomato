@@ -56,6 +56,7 @@ export interface Restaurant {
     coordinates: [number, number];
     formattedAddress: string;
   };
+  distance?: number;
 }
 
 export interface MenuItem {
@@ -194,6 +195,25 @@ export const updateRestaurant = async (token: string, formData: FormData): Promi
     return data.restaurant;
   } catch (error) {
     throw new Error(getErrorMessage(error, 'Failed to update restaurant'));
+  }
+};
+
+export const getNearbyRestaurants = async (
+  token: string,
+  latitude: number,
+  longitude: number
+): Promise<Restaurant[]> => {
+  try {
+    const { data } = await axios.get<{ restaurants: Restaurant[] }>(
+      `${API_RESTAURANT_URL}/nearby`,
+      {
+        params: { latitude, longitude },
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return data.restaurants;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Failed to fetch nearby restaurants'));
   }
 };
 
