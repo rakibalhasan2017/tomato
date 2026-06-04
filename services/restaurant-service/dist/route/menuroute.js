@@ -14,4 +14,5 @@ router.post('/addmenuitem', jwtverification_js_1.verifyJWT, isseller_js_1.issell
 router.get('/getmenuitem', jwtverification_js_1.verifyJWT, isseller_js_1.isseller, menuitem_js_1.getmenuitem);
 router.delete('/deletemenuitem/:id', jwtverification_js_1.verifyJWT, isseller_js_1.isseller, menuitem_js_1.deletemenuitem);
 router.put('/updatemenuitem/:id', jwtverification_js_1.verifyJWT, isseller_js_1.isseller, multer_js_1.upload.single('image'), uploadImage_js_1.uploadImage, menuitem_js_1.updatemenuitem);
+router.get('/restaurant/:restaurantId', jwtverification_js_1.verifyJWT, menuitem_js_1.getMenuItemsByRestaurant);
 exports.default = router;

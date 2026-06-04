@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/auth-context';
+import { useNearbyRestaurants } from '../context/nearby-restaurants-context';
 import { getNearbyRestaurants } from '../services/api';
-import type { Restaurant } from '../services/api';
 import type { Coordinates } from '../hooks/useLocationDetection';
 
 interface NearbyRestaurantsProps {
@@ -19,9 +20,8 @@ export const NearbyRestaurants = ({
   onDetectLocation,
 }: NearbyRestaurantsProps) => {
   const { token } = useAuth();
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { restaurants, loading, error, setRestaurants, setLoading, setError } =
+    useNearbyRestaurants();
 
   useEffect(() => {
     if (!coordinates || !token) return;
@@ -151,9 +151,10 @@ export const NearbyRestaurants = ({
       {!loading && filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map((restaurant) => (
-            <div
+            <Link
               key={restaurant._id}
-              className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer group"
+              to={`/restaurant/${restaurant._id}`}
+              className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer group block"
             >
               {/* Image */}
               <div className="h-40 bg-gray-100 relative overflow-hidden">
@@ -254,7 +255,7 @@ export const NearbyRestaurants = ({
                   </div>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

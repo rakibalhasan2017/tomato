@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '../context/auth-context';
+import { useLocation } from '../context/location-context';
 import { getBrowserLocation, reverseGeocode } from '../services/geolocation';
 import { updateCurrentLocation } from '../services/api';
 import type { BrowserLocationError } from '../services/geolocation';
@@ -23,9 +24,8 @@ const formatCoordinateFallback = (latitude: number, longitude: number) =>
 
 export const useLocationDetection = (): UseLocationDetectionReturn => {
   const { token, currentLocation, setCurrentLocation } = useAuth();
-  const [locationLabel, setLocationLabel] = useState('Location not detected yet');
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
+  const { locationLabel, locationError, isLocating, setLocationLabel, setLocationError, setIsLocating } =
+    useLocation();
 
   const locationGranted =
     currentLocation?.permission === 'granted' && !!currentLocation.point?.coordinates;
@@ -103,9 +103,7 @@ export const useLocationDetection = (): UseLocationDetectionReturn => {
       setLocationLabel(
         permission === 'denied' ? 'Location access was denied' : 'Location is unavailable right now',
       );
-      setLocationError(
-        err?.message ?? 'Unable to fetch location. Please try again.',
-      );
+      setLocationError(err?.message ?? 'Unable to fetch location. Please try again.');
     } finally {
       setIsLocating(false);
     }

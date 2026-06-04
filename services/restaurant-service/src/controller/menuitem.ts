@@ -142,3 +142,21 @@ export const updatemenuitem = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
+export const getMenuItemsByRestaurant = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+    const { restaurantId } = req.params;
+    if (!restaurantId) {
+      return res.status(400).json({ error: 'Restaurant ID is required' });
+    }
+    const menuItems = await MenuItem.find({ restaurantID: restaurantId });
+    return res.status(200).json({ menuItems });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};

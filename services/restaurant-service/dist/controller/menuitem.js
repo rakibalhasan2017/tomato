@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatemenuitem = exports.deletemenuitem = exports.getmenuitem = exports.addmenuitem = void 0;
+exports.getMenuItemsByRestaurant = exports.updatemenuitem = exports.deletemenuitem = exports.getmenuitem = exports.addmenuitem = void 0;
 const restaurant_1 = __importDefault(require("../model/restaurant"));
 const menuitem_1 = __importDefault(require("../model/menuitem"));
 const addmenuitem = async (req, res) => {
@@ -135,3 +135,22 @@ const updatemenuitem = async (req, res) => {
     }
 };
 exports.updatemenuitem = updatemenuitem;
+const getMenuItemsByRestaurant = async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+        const { restaurantId } = req.params;
+        if (!restaurantId) {
+            return res.status(400).json({ error: 'Restaurant ID is required' });
+        }
+        const menuItems = await menuitem_1.default.find({ restaurantID: restaurantId });
+        return res.status(200).json({ menuItems });
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.getMenuItemsByRestaurant = getMenuItemsByRestaurant;

@@ -198,6 +198,30 @@ export const updateRestaurant = async (token: string, formData: FormData): Promi
   }
 };
 
+export const getRestaurantById = async (token: string, id: string): Promise<Restaurant> => {
+  try {
+    const { data } = await axios.get<{ restaurant: Restaurant }>(
+      `${API_RESTAURANT_URL}/${id}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return data.restaurant;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Failed to fetch restaurant'));
+  }
+};
+
+export const getRestaurantMenuItems = async (token: string, restaurantId: string): Promise<MenuItem[]> => {
+  try {
+    const { data } = await axios.get<{ menuItems: MenuItem[] }>(
+      `${API_MENU_URL}/restaurant/${restaurantId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return data.menuItems;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Failed to fetch menu items'));
+  }
+};
+
 export const getNearbyRestaurants = async (
   token: string,
   latitude: number,
