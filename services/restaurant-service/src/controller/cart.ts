@@ -137,3 +137,48 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+export const updateCartItemQuantity = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const { menuItemID, quantity } = req.body;
+
+    if (!menuItemID || quantity === undefined) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const cart = await Cart.findOne({ userID: user.id });
+
+    if (!cart) {
+      return res.status(404).json({ error: 'Cart not found' });
+    }
+
+    const itemIndex = cart.items.findIndex((item) => item.menuItemID.toString() === menuItemID);
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: 'Item not found in cart' });
+    }
+
+    if (quantity <= 0) {
+      cart.items.splice(itemIndex, 1);
+      if (cart.items.length === 0) {
+        await Cart.findOneAndDelete({ userID: user.id });
+        return res.status(200).json({ items: [], restaurantID: null });
+      }
+    } else {
+      const item = cart.items[itemIndex];
+      if (item) item.quantity = quantity;
+    }
+
+    await cart.save();
+    res.status(200).json(cart);
+  } catch (error) {
+    console.error('Error updating cart item quantity:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

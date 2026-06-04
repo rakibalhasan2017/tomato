@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useAuth } from '../context/auth-context';
+import { useCartStore } from '../context/cart-context';
 
 export const Navbar = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const { totalItems, fetchCart } = useCartStore();
+
+  useEffect(() => {
+    if (token) void fetchCart(token);
+  }, [token]);
 
   if (!user) return null;
 
@@ -49,15 +56,17 @@ export const Navbar = () => {
               {/* Cart */}
               <Link
                 to="/cart"
-                className="p-2 text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all rounded-full relative group"
+                className="p-2 text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all rounded-full relative"
                 title="Cart"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                  0
-                </span>
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
               </Link>
             </>
           )}

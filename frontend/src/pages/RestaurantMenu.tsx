@@ -5,6 +5,7 @@ import { Navbar } from '../components/Navbar';
 import { getRestaurantById, getRestaurantMenuItems } from '../services/api';
 import type { Restaurant, MenuItem } from '../services/api';
 import { create } from 'zustand';
+import { useCartStore } from '../context/cart-context';
 
 interface RestaurantMenuStore {
   restaurant: Restaurant | null;
@@ -275,7 +276,12 @@ export const RestaurantMenu = () => {
                 <h2 className="text-lg font-bold text-gray-800 mb-4">Menu</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {availableItems.map((item) => (
-                    <MenuItemCard key={item._id} item={item} />
+                    <MenuItemCard
+                      key={item._id}
+                      item={item}
+                      token={token ?? ''}
+                      restaurantId={id ?? ''}
+                    />
                   ))}
                 </div>
               </section>
@@ -288,7 +294,13 @@ export const RestaurantMenu = () => {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 opacity-60">
                   {unavailableItems.map((item) => (
-                    <MenuItemCard key={item._id} item={item} unavailable />
+                    <MenuItemCard
+                      key={item._id}
+                      item={item}
+                      token={token ?? ''}
+                      restaurantId={id ?? ''}
+                      unavailable
+                    />
                   ))}
                 </div>
               </section>
@@ -300,30 +312,88 @@ export const RestaurantMenu = () => {
   );
 };
 
-const MenuItemCard = ({ item, unavailable }: { item: MenuItem; unavailable?: boolean }) => (
-  <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-    <div className="h-36 bg-gray-100 relative overflow-hidden">
-      {item.image ? (
-        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center text-4xl opacity-20">🍴</div>
-      )}
-      {unavailable && (
-        <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-          <span className="text-xs font-bold text-gray-500 bg-white rounded-full px-3 py-1 shadow">
-            Unavailable
-          </span>
+const MenuItemCard = ({
+  item,
+  token,
+  restaurantId,
+  unavailable,
+}: {
+  item: MenuItem;
+  token: string;
+  restaurantId: string;
+  unavailable?: boolean;
+}) => {
+  const qty = useCartStore((s) => s.items.find((i) => i.menuItemID === item._id)?.quantity ?? 0);
+  const { incrementItem, decrementItem } = useCartStore();
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="h-36 bg-gray-100 relative overflow-hidden">
+        {item.image ? (
+          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-4xl opacity-20">
+            🍴
+          </div>
+        )}
+        {unavailable && (
+          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+            <span className="text-xs font-bold text-gray-500 bg-white rounded-full px-3 py-1 shadow">
+              Unavailable
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        <h4 className="font-bold text-gray-800 truncate">{item.name}</h4>
+        {item.description && (
+          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.description}</p>
+        )}
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <p className="text-red-600 font-bold text-sm">${item.price.toFixed(2)}</p>
+
+          {!unavailable && (
+            qty === 0 ? (
+              <button
+                type="button"
+                onClick={() => void incrementItem(token, restaurantId, item._id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-xl transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                </svg>
+                Add
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void decrementItem(token, item._id, qty)}
+                  className="w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition-colors"
+                  aria-label="Decrease quantity"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
+                  </svg>
+                </button>
+                <span className="text-sm font-bold text-gray-800 w-4 text-center">{qty}</span>
+                <button
+                  type="button"
+                  onClick={() => void incrementItem(token, restaurantId, item._id)}
+                  className="w-7 h-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
+                  aria-label="Increase quantity"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+            )
+          )}
         </div>
-      )}
+      </div>
     </div>
-    <div className="p-4">
-      <h4 className="font-bold text-gray-800 truncate">{item.name}</h4>
-      {item.description && (
-        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.description}</p>
-      )}
-      <p className="mt-2 text-red-600 font-bold text-sm">${item.price.toFixed(2)}</p>
-    </div>
-  </div>
-);
+  );
+};
 
 export default RestaurantMenu;

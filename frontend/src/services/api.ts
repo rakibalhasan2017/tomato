@@ -3,6 +3,7 @@ import axios from 'axios';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const API_RESTAURANT_URL = 'http://localhost:5001/api/restaurant';
 const API_MENU_URL = 'http://localhost:5001/api/menu';
+const API_CART_URL = 'http://localhost:5001/api/cart';
 
 const getErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (axios.isAxiosError(error)) {
@@ -307,5 +308,64 @@ export const deleteMenuItem = async (token: string, id: string): Promise<{ messa
     return data;
   } catch (error) {
     throw new Error(getErrorMessage(error, 'Failed to delete menu item'));
+  }
+};
+
+export interface CartItem {
+  menuItemID: string | MenuItem;
+  quantity: number;
+}
+
+export interface Cart {
+  _id: string;
+  userID: string;
+  restaurantID: string;
+  items: CartItem[];
+}
+
+export const addToCart = async (
+  token: string,
+  restaurantID: string,
+  menuItemID: string,
+  quantity: number
+): Promise<Cart> => {
+  try {
+    const { data } = await axios.post<Cart>(
+      `${API_CART_URL}/add`,
+      { restaurantID, menuItemID, quantity },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Failed to add to cart'));
+  }
+};
+
+export const getCart = async (token: string): Promise<Cart | null> => {
+  try {
+    const { data } = await axios.get<Cart>(`${API_CART_URL}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) return null;
+    throw new Error(getErrorMessage(error, 'Failed to fetch cart'));
+  }
+};
+
+export const updateCartItemQuantity = async (
+  token: string,
+  menuItemID: string,
+  quantity: number
+): Promise<Cart> => {
+  try {
+    const { data } = await axios.put<Cart>(
+      `${API_CART_URL}/update`,
+      { menuItemID, quantity },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Failed to update cart item'));
   }
 };
