@@ -37,8 +37,17 @@ export const RestaurantMenu = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { token } = useAuth();
-  const { restaurant, menuItems, loading, error, setRestaurant, setMenuItems, setLoading, setError, reset } =
-    useRestaurantMenuStore();
+  const {
+    restaurant,
+    menuItems,
+    loading,
+    error,
+    setRestaurant,
+    setMenuItems,
+    setLoading,
+    setError,
+    reset,
+  } = useRestaurantMenuStore();
 
   useEffect(() => {
     if (!id || !token) return;
@@ -144,8 +153,19 @@ export const RestaurantMenu = () => {
           className="absolute top-4 left-4 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition"
           aria-label="Go back"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
 
@@ -162,8 +182,17 @@ export const RestaurantMenu = () => {
                 </span>
                 {restaurant.isverified && (
                   <span className="bg-blue-500 text-white rounded-full p-0.5" title="Verified">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-3.5 w-3.5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </span>
                 )}
@@ -173,9 +202,25 @@ export const RestaurantMenu = () => {
               </h1>
               {restaurant.autolocation?.formattedAddress && (
                 <p className="text-gray-300 text-xs mt-1 flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-3 w-3 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
                   {restaurant.autolocation.formattedAddress}
                 </p>
@@ -202,7 +247,12 @@ export const RestaurantMenu = () => {
                 href={`tel:${restaurant.phonenumber}`}
                 className="flex items-center gap-2 text-sm font-medium text-gray-700 bg-white rounded-xl px-4 py-2.5 shadow-sm border border-gray-100 hover:border-red-200 transition shrink-0"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 text-red-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
                   <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                 </svg>
                 {restaurant.phonenumber}
@@ -233,7 +283,9 @@ export const RestaurantMenu = () => {
 
             {unavailableItems.length > 0 && (
               <section>
-                <h2 className="text-base font-semibold text-gray-400 mb-4">Currently unavailable</h2>
+                <h2 className="text-base font-semibold text-gray-400 mb-4">
+                  Currently unavailable
+                </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 opacity-60">
                   {unavailableItems.map((item) => (
                     <MenuItemCard key={item._id} item={item} unavailable />
