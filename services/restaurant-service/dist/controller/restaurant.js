@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateresturant = exports.getmyrestaurant = exports.addresturant = void 0;
+exports.gettheresturant = exports.nearbyresturant = exports.updateresturant = exports.getmyrestaurant = exports.addresturant = void 0;
 const restaurant_js_1 = __importDefault(require("../model/restaurant.js"));
 const addresturant = async (req, res) => {
     try {
@@ -114,3 +114,46 @@ const updateresturant = async (req, res) => {
     }
 };
 exports.updateresturant = updateresturant;
+const nearbyresturant = async (req, res) => {
+    try {
+        const { latitude, longitude } = req.query;
+        if (latitude === undefined ||
+            longitude === undefined ||
+            isNaN(Number(latitude)) ||
+            isNaN(Number(longitude))) {
+            return res.status(400).json({ error: 'Missing or invalid latitude/longitude query parameters' });
+        }
+        const nearbyRestaurants = await restaurant_js_1.default.find({
+            autolocation: {
+                $near: {
+                    $geometry: {
+                        type: 'Point',
+                        coordinates: [Number(longitude), Number(latitude)],
+                    },
+                    $maxDistance: 5000,
+                },
+            },
+        });
+        return res.status(200).json({ restaurants: nearbyRestaurants });
+    }
+    catch (error) {
+        console.error('Get nearby restaurants error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+exports.nearbyresturant = nearbyresturant;
+const gettheresturant = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const restaurant = await restaurant_js_1.default.findById(id);
+        if (!restaurant) {
+            return res.status(404).json({ error: 'Restaurant not found' });
+        }
+        return res.status(200).json({ restaurant });
+    }
+    catch (error) {
+        console.error('Get restaurant error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+exports.gettheresturant = gettheresturant;

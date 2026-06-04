@@ -138,4 +138,74 @@ export const updateresturant = async (req: AuthRequest, res: Response) => {
     console.error('Update restaurant error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-};    
+};
+
+export const nearbyresturant = async (req: Request, res: Response) => {
+  try {
+    const { latitude, longitude } = req.query;
+
+    if (
+      latitude === undefined ||
+      longitude === undefined ||
+      isNaN(Number(latitude)) ||
+      isNaN(Number(longitude))
+    ) {
+      return res.status(400).json({
+        error: 'Missing or invalid latitude/longitude query parameters',
+      });
+    }
+
+    const restaurants = await Restaurant.aggregate([
+      {
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: [Number(longitude), Number(latitude)],
+          },
+          distanceField: 'distance',
+          maxDistance: 5000,
+          spherical: true,
+        },
+      },
+      {
+        $addFields: {
+          isClosedSort: {
+            $cond: [{ $eq: ['$isOpen', true] }, 0, 1],
+          },
+        },
+      },
+      {
+        $sort: {
+          isClosedSort: 1, // Open first
+          distance: 1,     // Nearest first
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      restaurants,
+    });
+  } catch (error) {
+    console.error('Get nearby restaurants error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+    });
+  }
+};
+
+export const gettheresturant = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const restaurant = await Restaurant.findById(id);
+
+    if (!restaurant) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+
+    return res.status(200).json({ restaurant });
+  } catch (error) {
+    console.error('Get restaurant error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};

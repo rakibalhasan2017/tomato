@@ -13,4 +13,5 @@ const router = express_1.default.Router();
 router.post('/addnew', jwtverification_js_1.verifyJWT, isseller_js_1.isseller, multer_js_1.upload.single('image'), uploadImage_js_1.uploadImage, restaurant_js_1.addresturant);
 router.get('/myrestaurant', jwtverification_js_1.verifyJWT, isseller_js_1.isseller, restaurant_js_1.getmyrestaurant);
 router.put('/update/', jwtverification_js_1.verifyJWT, isseller_js_1.isseller, multer_js_1.upload.single('image'), uploadImage_js_1.uploadImage, restaurant_js_1.updateresturant);
+router.get('/nearby', restaurant_js_1.nearbyresturant);
 exports.default = router;
